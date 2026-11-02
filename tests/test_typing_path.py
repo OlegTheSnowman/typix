@@ -31,7 +31,10 @@ class FakeInfo:
         return self.start == self.end
 
     def updateSelection(self):
-        self.field.selection = (self.start, self.end)
+        if self.field.selects == "at once":
+            self.field.selection = (self.start, self.end)
+        elif self.field.selects == "late":
+            self.field.pending = (self.start, self.end)
 
     def updateCaret(self):
         self.field.selection = (self.start, self.start)
@@ -108,10 +111,15 @@ class FakeField:
         self.text = text
         self.selection = selection or (len(text), len(text))
         self.queued = []
+        self.selects = "at once"  # or "late", as in a browser, or "never"
+        self.pending = None
 
     def makeTextInfo(self, position):
         if position == "selection":
-            return FakeInfo(self, *self.selection)
+            info = FakeInfo(self, *self.selection)
+            if self.pending:
+                self.selection, self.pending = self.pending, None
+            return info
         return FakeInfo(self, self.selection[1])
 
     def send_input(self, inputs):
@@ -198,8 +206,10 @@ class TestReplace(unittest.TestCase):
         self.plugin._own_deadline = 0.0
         self.plugin._last_misspelling = None
         self.plugin._hush = None
+        self.plugin._hush_serial = 0
         plugin_module.speech.setSpeechMode.reset_mock()
         plugin_module.eventHandler.queueEvent.reset_mock()
+        plugin_module.eventHandler.isPendingEvents.return_value = False
         self.send_input = plugin_module.winUser.SendInput
         self.send_input.reset_mock(side_effect=True)
         plugin_module.keyboardHandler.shouldUseToUnicodeEx.return_value = False
@@ -333,6 +343,67 @@ class TestReplace(unittest.TestCase):
         self.plugin.event_caret(self.field, late)
         late.assert_called_once()
         self.assertIsNone(self.plugin._hush)
+
+    def test_a_selection_that_shows_up_late_still_gets_replaced(self):
+        self.use("this ")
+        self.field.selects = "late"
+        self.plugin._replace(self.field, "this", "This", 0, True)
+        self.field.process_queue()
+        self.assertEqual(self.field.text, "This ")
+        self.assertEqual(self.field.selection, (5, 5))
+
+    def test_a_selection_that_never_shows_up_types_nothing(self):
+        self.use("this ")
+        self.field.selects = "never"
+        self.plugin._replace(self.field, "this", "This", 0, False)
+        self.send_input.assert_not_called()
+        self.assertEqual(self.field.text, "this ")
+        self.assertIn("safely", self.message())
+
+    def test_a_late_caret_event_on_a_new_focus_object_finds_the_selection_current(self):
+        self.use("this ")
+        newer = FakeField("This ", (0, 4))
+        newer._lastSelectionPos = newer.makeTextInfo("selection")
+        plugin_module.api.getFocusObject.return_value = newer
+        plugin_module.core.callLater.side_effect = None
+        self.plugin._hold_selection_speech(self.field)
+        self.plugin._finish_swap(self.field)
+        newer.selection = (5, 5)
+        held = mock.MagicMock()
+        self.plugin.event_caret(newer, held)
+        held.assert_not_called()
+        self.assertTrue(newer._lastSelectionPos.isCollapsed)
+        release = plugin_module.core.callLater.call_args[0]
+        release[1](*release[2:])
+        self.assertIsNone(self.plugin._hush)
+        plugin_module.eventHandler.queueEvent.assert_called_with("caret", self.field)
+
+    def test_an_old_release_leaves_a_newer_hold_alone(self):
+        self.use("this ")
+        plugin_module.core.callLater.side_effect = None
+        self.plugin._hold_selection_speech(self.field)
+        self.plugin._finish_swap(self.field)
+        release = plugin_module.core.callLater.call_args[0]
+        self.plugin._hold_selection_speech(self.field)
+        release[1](*release[2:])
+        self.assertIsNotNone(self.plugin._hush)
+
+    def test_the_hold_waits_for_pending_caret_events(self):
+        self.use("this ")
+        plugin_module.core.callLater.side_effect = None
+        plugin_module.eventHandler.isPendingEvents.return_value = True
+        self.plugin._hold_selection_speech(self.field)
+        self.plugin._release_hold(self.field, self.plugin._hush_serial)
+        self.assertIsNotNone(self.plugin._hush)
+        self.plugin._release_hold(self.field, self.plugin._hush_serial, 0)
+        self.assertIsNone(self.plugin._hush)
+
+    def test_a_slow_swap_keeps_the_hold(self):
+        self.use("this ", (0, 4))
+        plugin_module.core.callLater.side_effect = None
+        self.plugin._hush = (self.field, 0.0)
+        self.plugin._when_landed(self.field, None, mock.MagicMock())
+        self.assertGreater(self.plugin._hush[1], plugin_module.time.monotonic())
 
     def test_own_characters_are_swallowed_once_each(self):
         self.replace("this ")

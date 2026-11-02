@@ -74,8 +74,15 @@ _TYPED_WORDS_OFF = TypingEcho.OFF.value
 _NOT_TYPED = "\r\n\t"
 # How long, in seconds, characters Typix typed are expected back.
 _OWN_CHARS_TIMEOUT = 2.0
-# Longest a field's caret events are held back during a swap, in seconds.
+# Longest a field's caret events stay held with nothing renewing the hold, in seconds.
 _HUSH_TIMEOUT = 1.5
+# How long a selection gets to show up in the field, in seconds.
+_SELECT_TIMEOUT = 0.1
+# How long a swap gets to reach the field, in seconds.
+_LAND_TIMEOUT = 1.0
+# How long, in milliseconds, the hold outlasts a swap. Browsers send their
+# caret events late, and one let through would read the old selection.
+_HUSH_GRACE = 300
 
 # "i" on its own and its contractions, for the capital I rule.
 _I_FORMS = {"i", "i'm", "i'll", "i've", "i'd"}
@@ -214,6 +221,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         self._apostrophe_word = None     # NVDA's word held back at an apostrophe
         self._stats_open = False         # the statistics dialog is showing
         self._hush = None                # field whose selection changes NVDA must not read, and until when
+        self._hush_serial = 0            # tells a swap's release from a newer swap's hold
         self._own_chars = deque()        # characters Typix typed, on their way back
         self._own_deadline = 0.0         # when to stop expecting them
         # Typing statistics, kept across sessions; counts only, never text.
@@ -519,8 +527,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 back_by = _distance(after, caret, len(tail) + 1)
                 self._hold_selection_speech(obj)
                 found.updateSelection()
-                if obj.makeTextInfo(textInfos.POSITION_SELECTION).text != word:
-                    raise LookupError("selection read back differently")
+                self._await_selection(obj, word)
                 self._type(text)
 
                 def landed(ok):
@@ -537,8 +544,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 return
             self._hold_selection_speech(obj)
             span.updateSelection()
-            if obj.makeTextInfo(textInfos.POSITION_SELECTION).text != expected:
-                raise LookupError("selection read back differently")
+            self._await_selection(obj, expected)
             self._type(text + tail)
         except Exception:
             logger.debug("Typix: replacing a word failed", exc_info=True)
@@ -567,29 +573,77 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         # Translators: Spoken when the misspelled word can't be selected safely for replacing. {word} is that word.
         return _("Could not select {word} safely, nothing replaced").format(word=word)
 
+    @staticmethod
+    def _await_selection(obj, expected):
+        """Returns once the selection reads expected, or raises LookupError.
+        Browsers apply a selection a few milliseconds after being asked. This
+        blocks instead of using a timer, so typing follows the selection at
+        once and a fast typist's next key can't land on the selected word."""
+        started = time.monotonic()
+        while True:
+            if obj.makeTextInfo(textInfos.POSITION_SELECTION).text == expected:
+                return
+            if time.monotonic() - started >= _SELECT_TIMEOUT:
+                raise LookupError("selection read back differently")
+            time.sleep(0.002)
+
     def _hold_selection_speech(self, obj):
         """Stops NVDA reading out the selection Typix is about to make in
         obj. NVDA reads selection changes from caret events, so holding back
         only those, only for this field, leaves all other speech alone."""
+        self._hush_serial += 1
         self._hush = (obj, time.monotonic() + _HUSH_TIMEOUT)
 
+    def _extend_hold(self):
+        hush = self._hush
+        if hush:
+            self._hush = (hush[0], time.monotonic() + _HUSH_TIMEOUT)
+
+    @staticmethod
+    def _sync_selection(obj):
+        """Brings NVDA's stored selection up to date, so its next caret event
+        finds no change to read out. It compares against the focus object,
+        which a browser may have replaced with a new one during the swap."""
+        targets = [obj]
+        focus = api.getFocusObject()
+        if focus is not obj and _same_window(focus, obj):
+            targets.append(focus)
+        for target in targets:
+            try:
+                if hasattr(target, "detectPossibleSelectionChange"):
+                    target._lastSelectionPos = target.makeTextInfo(textInfos.POSITION_SELECTION)
+                    target.hasContentChangedSinceLastSelection = False
+            except Exception:
+                logger.debug("Typix: could not update NVDA's selection", exc_info=True)
+
     def _finish_swap(self, obj, message=None):
-        """Ends the hold, with NVDA's idea of the selection brought up to
-        date so the caret events still to come say nothing, and lets braille
-        and the review cursor catch up."""
+        """Speaks message and ends the hold a moment later, once the caret
+        events the swap caused have arrived."""
+        self._hold_selection_speech(obj)
+        self._sync_selection(obj)
+        core.callLater(_HUSH_GRACE, self._release_hold, obj, self._hush_serial)
+        if message:
+            ui.message(message)
+
+    def _release_hold(self, obj, serial, tries=20):
+        """Ends the hold unless a newer swap has taken it over, and lets
+        braille and the review cursor catch up."""
+        if serial != self._hush_serial or not self._hush:
+            return
         try:
-            if hasattr(obj, "detectPossibleSelectionChange"):
-                obj._lastSelectionPos = obj.makeTextInfo(textInfos.POSITION_SELECTION)
-                obj.hasContentChangedSinceLastSelection = False
+            pending = eventHandler.isPendingEvents("caret")
         except Exception:
-            logger.debug("Typix: could not update NVDA's selection", exc_info=True)
+            pending = False
+        if pending and tries:
+            self._extend_hold()
+            core.callLater(50, self._release_hold, obj, serial, tries - 1)
+            return
+        self._sync_selection(obj)
         self._hush = None
         try:
             eventHandler.queueEvent("caret", obj)
         except Exception:
             logger.debug("Typix: could not queue a caret event", exc_info=True)
-        if message:
-            ui.message(message)
 
     def event_caret(self, obj, nextHandler):
         hush = self._hush
@@ -597,6 +651,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             if time.monotonic() > hush[1]:
                 self._hush = None
             elif _same_window(obj, hush[0]):
+                self._sync_selection(hush[0])
                 return
         nextHandler()
 
@@ -658,8 +713,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             found = self._range_at(start, state.original, pos, shift, word)
             self._hold_selection_speech(obj)
             found.updateSelection()
-            if obj.makeTextInfo(textInfos.POSITION_SELECTION).text != word:
-                raise LookupError("selection read back differently")
+            self._await_selection(obj, word)
             self._type(choice)
         except Exception:
             logger.debug("Typix: replacing a selected word failed", exc_info=True)
@@ -692,12 +746,16 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 return found
         return None
 
-    def _when_landed(self, obj, text, then, tries=50):
+    def _when_landed(self, obj, text, then, deadline=None):
         """Calls then(True) once text, just typed, is in the field before the
         caret, or then(False) after about a second. Typed input is queued
         while selecting takes effect at once, so moving on too soon would
         put the text in the wrong place. With text None, it only waits for
-        the selection to be replaced."""
+        the selection to be replaced. The hold on selection speech is renewed
+        on the way, because reading a browser's text can take a while."""
+        if deadline is None:
+            deadline = time.monotonic() + _LAND_TIMEOUT
+        self._extend_hold()
         try:
             if text is None:
                 landed = obj.makeTextInfo(textInfos.POSITION_SELECTION).isCollapsed
@@ -707,10 +765,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 landed = info.text == text
         except Exception:
             landed = False
-        if landed or not tries:
+        if landed or time.monotonic() >= deadline:
             then(landed)
         else:
-            core.callLater(20, self._when_landed, obj, text, then, tries - 1)
+            core.callLater(20, self._when_landed, obj, text, then, deadline)
 
     def _type(self, text):
         """Types text over the selection as Unicode input, the way NVDA's
