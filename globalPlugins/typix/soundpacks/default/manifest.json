@@ -1,0 +1,17 @@
+{
+    "name": "Default",
+    "author": "OlegTheSnowman",
+    "version": "1.0",
+    "description": "Default typing sound pack",
+    "files": {
+        "LETTER": "letter.wav",
+        "SPACE": "space.wav",
+        "ENTER": "enter.wav",
+        "DELETE": "delete.wav",
+        "PUNCTUATION": "punctuation.wav",
+        "MISSPELLED": "misspelled.wav"
+    },
+    "char_sounds": {
+        ".": "char_002e.wav"
+    }
+}

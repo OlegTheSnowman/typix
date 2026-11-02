@@ -1,0 +1,39 @@
+{
+    "name": "Brown Switches",
+    "author": "OlegTheSnowman",
+    "version": "1.0",
+    "description": "",
+    "files": {
+        "LETTER": [
+            "letter_1.wav",
+            "letter_2.wav",
+            "letter_3.wav",
+            "letter_4.wav",
+            "letter_5.wav",
+            "letter_6.wav",
+            "letter_7.wav",
+            "letter_8.wav",
+            "letter_9.wav",
+            "letter_10.wav"
+        ],
+        "CAPS_LETTER": "caps_letter.wav",
+        "SPACE": "space.wav",
+        "ENTER": "enter.wav",
+        "DELETE": "delete.wav",
+        "PUNCTUATION": [
+            "punctuation_1.wav",
+            "punctuation_2.wav",
+            "punctuation_3.wav",
+            "punctuation_4.wav",
+            "punctuation_5.wav",
+            "punctuation_6.wav",
+            "punctuation_7.wav",
+            "punctuation_8.wav",
+            "punctuation_9.wav",
+            "punctuation_10.wav"
+        ],
+        "MISSPELLED": "misspelled.wav"
+    },
+    "char_sounds": {},
+    "char_panning": {}
+}

@@ -1,0 +1,867 @@
+# Ukrainian translations for typix.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the typix project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: typix '1.0.0'\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-11-02 18:05+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: OlegTheSnowman\n"
+"Language: uk\n"
+"Language-Team: Ukrainian\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#. Translators: Category name of Typix commands in NVDA's Input gestures
+#. dialog.
+#. Translators: Name of the Typix submenu in NVDA menu, Tools.
+#. Translators: Title of the Typix category in NVDA's settings dialog.
+#. Translators: Summary/title for this add-on, shown on installation and in the
+#. Add-on Store
+#: globalPlugins/typix/__init__.py:174 globalPlugins/typix/__init__.py:227
+#: globalPlugins/typix/settings.py:509 manifest.ini
+msgid "Typix"
+msgstr "Typix"
+
+#. Translators: Item in NVDA menu, Tools, Typix that opens the custom spelling
+#. dictionary.
+#: globalPlugins/typix/__init__.py:224
+msgid "Manage &Dictionary..."
+msgstr "Керування &словником..."
+
+#. Translators: Spoken when the toggle command turns typing sounds on.
+#: globalPlugins/typix/__init__.py:301
+msgid "Typix sounds on"
+msgstr "Звуки Typix увімкнено"
+
+#. Translators: Spoken when the toggle command turns typing sounds off.
+#: globalPlugins/typix/__init__.py:304
+msgid "Typix sounds off"
+msgstr "Звуки Typix вимкнено"
+
+#. Translators: Description of the toggle command in NVDA's Input gestures
+#. dialog.
+#: globalPlugins/typix/__init__.py:306
+msgid "Toggles Typix typing sounds on and off"
+msgstr "Вмикає та вимикає звуки набору Typix"
+
+#. Translators: Spoken when the selection spelling check is started while one
+#. is already running.
+#: globalPlugins/typix/__init__.py:311
+msgid "A selection spelling check is already in progress"
+msgstr "Перевірка правопису виділеного тексту вже триває"
+
+#. Translators: Part of the typing statistics: speed of the stretch being typed
+#. now. {wpm} is words per minute.
+#: globalPlugins/typix/__init__.py:334
+#, python-brace-format
+msgid "Now {wpm} words per minute"
+msgstr "Зараз {wpm} слів на хвилину"
+
+#. Translators: Part of the typing statistics: average speed today. {wpm} is
+#. words per minute.
+#: globalPlugins/typix/__init__.py:337
+#, python-brace-format
+msgid "today {wpm} on average"
+msgstr "сьогодні в середньому {wpm}"
+
+#. Translators: Part of the typing statistics: words typed today.
+#: globalPlugins/typix/__init__.py:339
+#, python-brace-format
+msgid "{n} word today"
+msgid_plural "{n} words today"
+msgstr[0] "{n} слово сьогодні"
+msgstr[1] "{n} слова сьогодні"
+msgstr[2] "{n} слів сьогодні"
+
+#. Translators: Part of the typing statistics: misspellings today.
+#: globalPlugins/typix/__init__.py:341
+#, python-brace-format
+msgid "{n} misspelling"
+msgid_plural "{n} misspellings"
+msgstr[0] "{n} помилка"
+msgstr[1] "{n} помилки"
+msgstr[2] "{n} помилок"
+
+#. Translators: Part of the typing statistics: average speed over all saved
+#. days. {wpm} is words per minute.
+#: globalPlugins/typix/__init__.py:344
+#, python-brace-format
+msgid "all time average {wpm}"
+msgstr "середня за весь час {wpm}"
+
+#. Translators: Part of the typing statistics: the fastest stretch of typing
+#. ever measured. {wpm} is words per minute.
+#: globalPlugins/typix/__init__.py:347
+#, python-brace-format
+msgid "best {wpm}"
+msgstr "найкраща {wpm}"
+
+#. Translators: Spoken when no spelling dictionary is ready yet for the current
+#. keyboard language.
+#: globalPlugins/typix/__init__.py:354
+msgid "Spellcheck dictionary is not available yet, try again in a moment"
+msgstr "Словник ще недоступний, спробуйте трохи пізніше"
+
+#. Translators: Description of the spelling command in NVDA's Input gestures
+#. dialog.
+#: globalPlugins/typix/__init__.py:367
+msgid "Checks the spelling of selected text; with nothing selected, fixes the last misspelled word you typed, or reports your typing statistics when there is none"
+msgstr "Перевіряє правопис виділеного тексту; якщо нічого не виділено, виправляє останнє слово з помилкою, а якщо такого немає, повідомляє статистику набору"
+
+#. Translators: Spoken when the selection spelling check finds no misspelled
+#. words.
+#: globalPlugins/typix/__init__.py:404
+msgid "No spelling errors found"
+msgstr "Помилок не знайдено"
+
+#. Translators: Spoken when the selection spelling check ends without any word
+#. replaced.
+#: globalPlugins/typix/__init__.py:407
+msgid "No changes made"
+msgstr "Змін не внесено"
+
+#. Translators: Spoken when corrected text can't be written because the field
+#. is read-only.
+#: globalPlugins/typix/__init__.py:410
+msgid "Cannot replace text, the field is read-only"
+msgstr "Не вдалося замінити текст, поле лише для читання"
+
+#. Translators: Choice in the spelling suggestions list. {word} is the
+#. misspelled word.
+#: globalPlugins/typix/__init__.py:425
+#, python-brace-format
+msgid "Add {word} to dictionary"
+msgstr "Додати {word} до словника"
+
+#. Translators: Choice in the spelling suggestions list that leaves the word as
+#. it is.
+#: globalPlugins/typix/__init__.py:427
+msgid "Skip"
+msgstr "Пропустити"
+
+#. Translators: Message of the spelling suggestions dialog. {word} is the
+#. misspelled word, {count} the number of suggestions.
+#: globalPlugins/typix/__init__.py:431
+#, python-brace-format
+msgid "{word} is misspelled. {count} suggestion."
+msgid_plural "{word} is misspelled. {count} suggestions."
+msgstr[0] "{word} написано з помилкою. {count} варіант."
+msgstr[1] "{word} написано з помилкою. {count} варіанти."
+msgstr[2] "{word} написано з помилкою. {count} варіантів."
+
+#. Translators: Message of the spelling suggestions dialog when there are no
+#. suggestions. {word} is the misspelled word.
+#: globalPlugins/typix/__init__.py:437
+#, python-brace-format
+msgid "{word} is misspelled. No suggestions."
+msgstr "{word} написано з помилкою. Варіантів немає."
+
+#. Translators: Title of the spelling suggestions dialog.
+#: globalPlugins/typix/__init__.py:439
+msgid "Spelling suggestions"
+msgstr "Варіанти виправлення"
+
+#. Translators: Spoken when focus doesn't return to the text field after the
+#. suggestions dialog.
+#: globalPlugins/typix/__init__.py:555
+msgid "Could not get back to the text, nothing replaced"
+msgstr "Не вдалося повернутися до тексту, нічого не замінено"
+
+#. Translators: Spoken when the misspelled word can't be selected safely for
+#. replacing. {word} is that word.
+#: globalPlugins/typix/__init__.py:560
+#, python-brace-format
+msgid "Could not select {word} safely, nothing replaced"
+msgstr "Не вдалося безпечно виділити {word}, нічого не замінено"
+
+#. Translators: Spoken when the selection changed during the spelling check, so
+#. nothing is corrected.
+#: globalPlugins/typix/__init__.py:594
+msgid "The selection changed, nothing replaced"
+msgstr "Виділення змінилося, нічого не замінено"
+
+#. Translators: Spoken after the selection check corrected the words.
+#: globalPlugins/typix/__init__.py:626
+msgid "Corrected"
+msgstr "Виправлено"
+
+#. Translators: Name of a sound category: lowercase letters and digits.
+#: globalPlugins/typix/settings.py:27
+msgid "Letters"
+msgstr "Літери"
+
+#. Translators: Name of a sound category: capital letters.
+#: globalPlugins/typix/settings.py:29
+msgid "Capital letters"
+msgstr "Великі літери"
+
+#. Translators: Name of a sound category: the space bar.
+#: globalPlugins/typix/settings.py:31
+msgid "Space"
+msgstr "Пробіл"
+
+#. Translators: Name of a sound category: the Enter key.
+#: globalPlugins/typix/settings.py:33
+msgid "Enter"
+msgstr "Enter"
+
+#. Translators: Name of a sound category: the Tab key.
+#: globalPlugins/typix/settings.py:35
+msgid "Tab"
+msgstr "Tab"
+
+#. Translators: Name of a sound category: the Backspace key.
+#: globalPlugins/typix/settings.py:37
+msgid "Backspace"
+msgstr "Backspace"
+
+#. Translators: Name of a sound category: the Delete key.
+#: globalPlugins/typix/settings.py:39
+msgid "Delete"
+msgstr "Delete"
+
+#. Translators: Name of a sound category: punctuation, currency and other
+#. symbols.
+#: globalPlugins/typix/settings.py:41
+msgid "Punctuation and symbols"
+msgstr "Розділові знаки та символи"
+
+#. Translators: Name of a sound category: the alert played after a misspelled
+#. word.
+#: globalPlugins/typix/settings.py:43
+msgid "Misspelled word"
+msgstr "Слово з помилкою"
+
+#. Translators: Name of a sound category: played when a text replacement rule
+#. changes what you typed.
+#: globalPlugins/typix/settings.py:45
+msgid "Automatic replacement"
+msgstr "Автоматична заміна"
+
+#. Translators: How a capital letter is named in character lists. {char} is the
+#. letter.
+#: globalPlugins/typix/settings.py:78
+#, python-brace-format
+msgid "cap {char}"
+msgstr "велика {char}"
+
+#. Translators: Direction of a sound in stereo, used in the pan description
+#. below.
+#: globalPlugins/typix/settings.py:87
+msgid "left"
+msgstr "ліворуч"
+
+#. Translators: Direction of a sound in stereo, used in the pan description
+#. below.
+#: globalPlugins/typix/settings.py:90
+msgid "right"
+msgstr "праворуч"
+
+#. Translators: Describes a character's stereo position. {side} is left or
+#. right, {amount} is 1 to 100.
+#: globalPlugins/typix/settings.py:92
+#, python-brace-format
+msgid "pan {side} {amount}"
+msgstr "панорама {side} {amount}"
+
+#. Translators: Describes a character's pitch change. {semitones} is a signed
+#. number like +2.0.
+#: globalPlugins/typix/settings.py:95
+#, python-brace-format
+msgid "pitch {semitones:+.1f} semitones"
+msgstr "висота в півтонах {semitones:+.1f}"
+
+#. Translators: Shown for a character with neither pan nor pitch set.
+#: globalPlugins/typix/settings.py:97
+msgid "no effects"
+msgstr "без ефектів"
+
+#. Translators: Prompt of the dialog that asks for a single character.
+#: globalPlugins/typix/settings.py:114
+msgid "Type one character, for example , or . or @:"
+msgstr "Введіть один символ, наприклад , або . або @:"
+
+#. Translators: Title of dialogs about choosing a single character.
+#: globalPlugins/typix/settings.py:116 globalPlugins/typix/settings.py:128
+msgid "Character"
+msgstr "Символ"
+
+#. Translators: Error when more or less than one character was typed.
+#: globalPlugins/typix/settings.py:126
+msgid "Please enter exactly one character."
+msgstr "Введіть рівно один символ."
+
+#. Translators: File type filter in the open file dialog. Keep the |*.wav part
+#. unchanged.
+#: globalPlugins/typix/settings.py:145
+msgid "WAV files (*.wav)|*.wav"
+msgstr "Файли WAV (*.wav)|*.wav"
+
+#. Translators: Title of the pan and pitch dialog. {char} is the character's
+#. spoken name.
+#: globalPlugins/typix/settings.py:157
+#, python-brace-format
+msgid "Effects for {char}"
+msgstr "Ефекти для {char}"
+
+#. Translators: Label of the pan field in the effects dialog.
+#: globalPlugins/typix/settings.py:162
+msgid "&Pan, from -100 full left through 0 centre to 100 full right:"
+msgstr "&Панорама, від -100 повністю ліворуч через 0 у центрі до 100 повністю праворуч:"
+
+#. Translators: Label of the pitch field in the effects dialog.
+#: globalPlugins/typix/settings.py:167
+msgid "P&itch in semitones, negative is lower:"
+msgstr "&Висота в півтонах, від'ємне значення нижче:"
+
+#. Translators: Title of the dialog for adding or editing a text replacement.
+#: globalPlugins/typix/settings.py:188 globalPlugins/typix/settings.py:214
+msgid "Text replacement"
+msgstr "Заміна тексту"
+
+#. Translators: Label of the field for the word you type to trigger a text
+#. replacement.
+#: globalPlugins/typix/settings.py:192
+msgid "&Shortcut, one word you type:"
+msgstr "&Скорочення, одне слово, яке ви вводите:"
+
+#. Translators: Label of the field for the text a shortcut becomes.
+#: globalPlugins/typix/settings.py:194
+msgid "&Becomes:"
+msgstr "&Замінюється на:"
+
+#. Translators: Error when a text replacement's shortcut isn't a single word or
+#. the text is empty.
+#: globalPlugins/typix/settings.py:212
+msgid "The shortcut must be a single word, letters and digits only, and the text can't be empty."
+msgstr "Скорочення має бути одним словом лише з літер і цифр, а текст не може бути порожнім."
+
+#. Translators: Title of the sound pack editor. {name} is the pack name.
+#: globalPlugins/typix/settings.py:229
+#, python-brace-format
+msgid "Edit sound pack {name}"
+msgstr "Редагування пакета звуків {name}"
+
+#. Translators: Group in the pack editor holding the pack's name, author and
+#. description.
+#: globalPlugins/typix/settings.py:243
+msgid "Details"
+msgstr "Відомості"
+
+#. Translators: Label of the pack name field.
+#: globalPlugins/typix/settings.py:245
+msgid "&Name:"
+msgstr "&Назва:"
+
+#. Translators: Label of the pack author field.
+#: globalPlugins/typix/settings.py:247
+msgid "&Author:"
+msgstr "&Автор:"
+
+#. Translators: Label of the pack description field.
+#: globalPlugins/typix/settings.py:250
+msgid "&Description:"
+msgstr "&Опис:"
+
+#. Translators: Group in the pack editor for the sounds of each category.
+#: globalPlugins/typix/settings.py:256
+msgid "Category sounds"
+msgstr "Звуки категорій"
+
+#. Translators: Label of the list of sound categories in the pack editor.
+#: globalPlugins/typix/settings.py:258
+msgid "Ca&tegory:"
+msgstr "&Категорія:"
+
+#. Translators: Label of the list of sound files in the selected category.
+#: globalPlugins/typix/settings.py:261
+msgid "Sound &file:"
+msgstr "&Файл звуку:"
+
+#. Translators: Button that plays the selected sound file.
+#: globalPlugins/typix/settings.py:264
+msgid "&Play"
+msgstr "&Відтворити"
+
+#. Translators: Button that replaces all sounds of the selected category with
+#. chosen files.
+#: globalPlugins/typix/settings.py:266
+msgid "&Replace sounds..."
+msgstr "&Замінити звуки..."
+
+#. Translators: Button that adds more sound files to the selected category.
+#: globalPlugins/typix/settings.py:268
+msgid "Add &variation..."
+msgstr "&Додати варіант..."
+
+#. Translators: Button that removes the selected sound file from the category.
+#: globalPlugins/typix/settings.py:270
+msgid "Remove &sound"
+msgstr "&Прибрати звук"
+
+#. Translators: Group in the pack editor for per-character sounds and effects.
+#: globalPlugins/typix/settings.py:275
+msgid "Characters"
+msgstr "Символи"
+
+#. Translators: Label of the list of characters with their own sound or
+#. effects.
+#: globalPlugins/typix/settings.py:277
+msgid "C&haracter:"
+msgstr "&Символ:"
+
+#. Translators: Button that adds a character with its own sound or effects.
+#: globalPlugins/typix/settings.py:280
+msgid "Add &character..."
+msgstr "Додати с&имвол..."
+
+#. Translators: Button that chooses sound files for the selected character.
+#: globalPlugins/typix/settings.py:282
+msgid "Choose s&ound..."
+msgstr "Виб&рати звук..."
+
+#. Translators: Button that opens the pan and pitch dialog for the selected
+#. character.
+#: globalPlugins/typix/settings.py:284
+msgid "Set &effects..."
+msgstr "&Ефекти..."
+
+#. Translators: Button that plays the selected character with its pan and
+#. pitch.
+#: globalPlugins/typix/settings.py:286
+msgid "Previe&w"
+msgstr "Прос&лухати"
+
+#. Translators: Button that removes the selected character's sound and effects.
+#: globalPlugins/typix/settings.py:288
+msgid "Re&move character"
+msgstr "Прибрати си&мвол"
+
+#. Translators: Shown next to a category with no sound files.
+#: globalPlugins/typix/settings.py:310
+msgid "no sound"
+msgstr "немає звуку"
+
+#. Translators: Number of sound files in a category. {n} is the number.
+#: globalPlugins/typix/settings.py:313
+#, python-brace-format
+msgid "{n} sound"
+msgid_plural "{n} sounds"
+msgstr[0] "{n} звук"
+msgstr[1] "{n} звуки"
+msgstr[2] "{n} звуків"
+
+#. Translators: Title of the file dialog for choosing sounds. {category} is a
+#. category name.
+#: globalPlugins/typix/settings.py:339
+#, python-brace-format
+msgid "Choose sounds for {category}"
+msgstr "Виберіть звуки для категорії {category}"
+
+#. Translators: Shown for a character without its own sound, which uses its
+#. category's sound.
+#: globalPlugins/typix/settings.py:364
+msgid "category sound"
+msgstr "звук категорії"
+
+#. Translators: Title of the file dialog for choosing sounds. {char} is the
+#. character's spoken name.
+#: globalPlugins/typix/settings.py:379 globalPlugins/typix/settings.py:390
+#, python-brace-format
+msgid "Choose sounds for {char}"
+msgstr "Виберіть звуки для {char}"
+
+#. Translators: Message after saving a pack when some files failed. A list of
+#. errors follows.
+#: globalPlugins/typix/settings.py:433
+msgid "Some sounds could not be saved:"
+msgstr "Не вдалося зберегти деякі звуки:"
+
+#. Translators: Title of message boxes about a sound pack.
+#. Translators: Group in Typix settings for choosing and managing sound packs.
+#: globalPlugins/typix/settings.py:435 globalPlugins/typix/settings.py:551
+msgid "Sound pack"
+msgstr "Пакет звуків"
+
+#. Translators: Title of the custom spelling dictionary dialog.
+#: globalPlugins/typix/settings.py:446
+msgid "Typix custom dictionary"
+msgstr "Власний словник Typix"
+
+#. Translators: Label of the list of words in the custom dictionary.
+#: globalPlugins/typix/settings.py:450
+msgid "&Words:"
+msgstr "&Слова:"
+
+#. Translators: Button that adds a word to the custom dictionary.
+#: globalPlugins/typix/settings.py:453
+msgid "&Add word..."
+msgstr "&Додати слово..."
+
+#. Translators: Button that removes the selected word from the custom
+#. dictionary.
+#: globalPlugins/typix/settings.py:455
+msgid "&Remove word"
+msgstr "В&идалити слово"
+
+#. Translators: Prompt of the dialog that asks for a word to add to the
+#. dictionary.
+#: globalPlugins/typix/settings.py:476
+msgid "Word to add:"
+msgstr "Слово, яке треба додати:"
+
+#. Translators: Title of the dialog that asks for a word to add to the
+#. dictionary.
+#: globalPlugins/typix/settings.py:478
+msgid "Add word"
+msgstr "Додати слово"
+
+#. Translators: Prompt of the dialog that asks for the word's language code.
+#: globalPlugins/typix/settings.py:488
+msgid "Language of the word, for example en_US, en_GB or fr_FR:"
+msgstr "Мова слова, наприклад uk_UA, en_US або en_GB:"
+
+#. Translators: Title of the dialog that asks for the word's language code.
+#: globalPlugins/typix/settings.py:490
+msgid "Language"
+msgstr "Мова"
+
+#. Translators: Checkbox that turns all typing sounds on or off.
+#: globalPlugins/typix/settings.py:517
+msgid "&Play typing sounds"
+msgstr "&Відтворювати звуки набору"
+
+#. Translators: Group in Typix settings for volume, panning and sound
+#. categories.
+#: globalPlugins/typix/settings.py:521
+msgid "Sounds"
+msgstr "Звуки"
+
+#. Translators: Label of the typing sound volume slider.
+#: globalPlugins/typix/settings.py:524
+msgid "&Volume:"
+msgstr "&Гучність:"
+
+#. Translators: Checkbox that lets each key sound from its own place in stereo.
+#: globalPlugins/typix/settings.py:528
+msgid "Stereo pannin&g per key"
+msgstr "&Стереопанорама для кожної клавіші"
+
+#. Translators: Label of the slider for how far sounds can pan left and right.
+#: globalPlugins/typix/settings.py:532
+msgid "Panning &width:"
+msgstr "&Ширина панорами:"
+
+#. Translators: Label of the field that ignores fast repeats of the same key.
+#: globalPlugins/typix/settings.py:537
+msgid "Key repeat &filter, ignores the same key again within this many milliseconds, 0 is off:"
+msgstr "&Фільтр повторів, ігнорує ту саму клавішу протягом стількох мілісекунд, 0 вимикає:"
+
+#. Translators: Label of the checklist of sound categories that play.
+#: globalPlugins/typix/settings.py:542
+msgid "Play sounds f&or:"
+msgstr "Відтворювати зв&уки для:"
+
+#. Translators: Label of the list of installed sound packs.
+#: globalPlugins/typix/settings.py:554
+msgid "Sound pac&k:"
+msgstr "&Пакет звуків:"
+
+#. Translators: Label of the list of sounds in the selected pack.
+#: globalPlugins/typix/settings.py:557
+msgid "Pr&eview sound:"
+msgstr "Пр&ослухати звук:"
+
+#. Translators: Button that plays the selected preview sound.
+#: globalPlugins/typix/settings.py:560
+msgid "Pla&y"
+msgstr "Від&творити"
+
+#. Translators: Button that opens the editor for the selected pack.
+#: globalPlugins/typix/settings.py:562
+msgid "Edi&t pack..."
+msgstr "&Редагувати пакет..."
+
+#. Translators: Button that creates a new sound pack.
+#: globalPlugins/typix/settings.py:564
+msgid "&New pack..."
+msgstr "&Новий пакет..."
+
+#. Translators: Button that installs a sound pack from a zip file.
+#: globalPlugins/typix/settings.py:568
+msgid "&Import pack..."
+msgstr "&Імпортувати пакет..."
+
+#. Translators: Button that saves the selected pack as a zip file.
+#: globalPlugins/typix/settings.py:570
+msgid "E&xport pack..."
+msgstr "&Експортувати пакет..."
+
+#. Translators: Button that deletes the selected pack.
+#: globalPlugins/typix/settings.py:572
+msgid "&Delete pack"
+msgstr "В&идалити пакет"
+
+#. Translators: Button that opens the sound packs folder in File Explorer.
+#: globalPlugins/typix/settings.py:574
+msgid "Open packs folder"
+msgstr "Відкрити папку пакетів"
+
+#. Translators: Group in Typix settings for pan and pitch rules that apply to
+#. every pack.
+#: globalPlugins/typix/settings.py:580
+msgid "Character rules for every pack"
+msgstr "Правила символів для всіх пакетів"
+
+#. Translators: Label of the list of character rules.
+#: globalPlugins/typix/settings.py:583
+msgid "R&ules:"
+msgstr "Правил&а:"
+
+#. Translators: Button that adds a character rule.
+#: globalPlugins/typix/settings.py:586
+msgid "Add rule..."
+msgstr "Додати правило..."
+
+#. Translators: Button that edits the selected character rule.
+#: globalPlugins/typix/settings.py:588
+msgid "Edit rule..."
+msgstr "Змінити правило..."
+
+#. Translators: Button that removes the selected character rule.
+#: globalPlugins/typix/settings.py:590
+msgid "Remove rule"
+msgstr "Видалити правило"
+
+#. Translators: Group in Typix settings for text replacements and automatic
+#. capitals.
+#: globalPlugins/typix/settings.py:596
+msgid "Text replacements"
+msgstr "Заміни тексту"
+
+#. Translators: Label of the list of text replacements, each a shortcut and the
+#. text it becomes.
+#: globalPlugins/typix/settings.py:599
+msgid "Replace&ments:"
+msgstr "За&міни:"
+
+#. Translators: Button that adds a text replacement.
+#: globalPlugins/typix/settings.py:602
+msgid "Add replacement..."
+msgstr "Додати заміну..."
+
+#. Translators: Button that edits the selected text replacement.
+#: globalPlugins/typix/settings.py:604
+msgid "Edit replacement..."
+msgstr "Змінити заміну..."
+
+#. Translators: Button that removes the selected text replacement.
+#: globalPlugins/typix/settings.py:606
+msgid "Remove replacement"
+msgstr "Видалити заміну"
+
+#. Translators: Checkbox that capitalises the first word of each sentence as
+#. you type.
+#: globalPlugins/typix/settings.py:610
+msgid "Capitali&ze the first word of a sentence"
+msgstr "Починати речення з великої &літери"
+
+#. Translators: Checkbox that turns a lone lowercase i, and i'm, i'll and so
+#. on, into a capital I.
+#: globalPlugins/typix/settings.py:615
+msgid "Capital I when i stands a&lone"
+msgstr "Велика англійська I, коли i стоїть о&кремо"
+
+#. Translators: Group in Typix settings for spelling options.
+#: globalPlugins/typix/settings.py:622
+msgid "Spelling"
+msgstr "Правопис"
+
+#. Translators: Checkbox that plays an alert after typing a misspelled word.
+#: globalPlugins/typix/settings.py:625
+msgid "Beep on mi&sspelled words as you type"
+msgstr "Сигнал про помилки під час на&бору"
+
+#. Translators: Button that opens the custom spelling dictionary.
+#: globalPlugins/typix/settings.py:629
+msgid "&Custom dictionary..."
+msgstr "Власни&й словник..."
+
+#. Translators: A pack in the pack list. {name} is the pack name, {author} its
+#. author.
+#: globalPlugins/typix/settings.py:652
+#, python-brace-format
+msgid "{name} by {author}"
+msgstr "{name}, автор {author}"
+
+#. Translators: Prompt of the dialog that asks for a new pack's name.
+#: globalPlugins/typix/settings.py:704
+msgid "Name of the new sound pack:"
+msgstr "Назва нового пакета звуків:"
+
+#. Translators: Title of dialogs about creating a new sound pack.
+#. Translators: Title of the error message when a new pack can't be created.
+#: globalPlugins/typix/settings.py:706 globalPlugins/typix/settings.py:717
+msgid "New sound pack"
+msgstr "Новий пакет звуків"
+
+#. Translators: Error when a new pack can't be created.
+#: globalPlugins/typix/settings.py:715
+msgid "Could not create the pack. A pack with that name may already exist."
+msgstr "Не вдалося створити пакет. Можливо, пакет із такою назвою вже існує."
+
+#. Translators: Title of the file dialog for exporting a pack.
+#: globalPlugins/typix/settings.py:732
+msgid "Export sound pack"
+msgstr "Експорт пакета звуків"
+
+#. Translators: File type filter in the save file dialog. Keep the |*.zip part
+#. unchanged.
+#. Translators: File type filter in the open file dialog. Keep the |*.zip part
+#. unchanged.
+#: globalPlugins/typix/settings.py:734 globalPlugins/typix/settings.py:762
+msgid "ZIP files (*.zip)|*.zip"
+msgstr "Файли ZIP (*.zip)|*.zip"
+
+#. Translators: Message after a pack was exported.
+#: globalPlugins/typix/settings.py:742
+msgid "Pack exported."
+msgstr "Пакет експортовано."
+
+#. Translators: Title of message boxes about exporting a pack.
+#: globalPlugins/typix/settings.py:744 globalPlugins/typix/settings.py:752
+msgid "Export"
+msgstr "Експорт"
+
+#. Translators: Message after exporting a pack failed.
+#: globalPlugins/typix/settings.py:750
+msgid "Export failed."
+msgstr "Не вдалося експортувати."
+
+#. Translators: Title of the file dialog for importing a pack.
+#: globalPlugins/typix/settings.py:760
+msgid "Import sound pack"
+msgstr "Імпорт пакета звуків"
+
+#. Translators: Asks whether to replace an existing pack on import. {name} is
+#. the pack folder name.
+#: globalPlugins/typix/settings.py:772
+#, python-brace-format
+msgid "A pack named {name} already exists. Replace it?"
+msgstr "Пакет {name} уже існує. Замінити його?"
+
+#. Translators: Title of message boxes about importing a pack.
+#. Translators: Title of the error message when importing a pack failed.
+#: globalPlugins/typix/settings.py:774 globalPlugins/typix/settings.py:785
+#: globalPlugins/typix/settings.py:790
+msgid "Import"
+msgstr "Імпорт"
+
+#. Translators: Message after a pack was imported. {name} is the pack folder
+#. name.
+#: globalPlugins/typix/settings.py:783
+#, python-brace-format
+msgid "Pack {name} imported."
+msgstr "Пакет {name} імпортовано."
+
+#. Translators: Asks to confirm deleting a pack. {name} is the pack folder
+#. name.
+#: globalPlugins/typix/settings.py:798
+#, python-brace-format
+msgid "Delete the pack {name}? This cannot be undone."
+msgstr "Видалити пакет {name}? Цю дію не можна скасувати."
+
+#. Translators: Title of message boxes about deleting a pack.
+#: globalPlugins/typix/settings.py:800 globalPlugins/typix/settings.py:808
+msgid "Delete pack"
+msgstr "Видалення пакета"
+
+#. Translators: Error when a pack couldn't be deleted.
+#: globalPlugins/typix/settings.py:806
+msgid "Could not delete the pack."
+msgstr "Не вдалося видалити пакет."
+
+#. Translators: A text replacement in the list. {shortcut} is what you type,
+#. {text} what it becomes.
+#: globalPlugins/typix/settings.py:865
+#, python-brace-format
+msgid "{shortcut} becomes {text}"
+msgstr "{shortcut} замінюється на {text}"
+
+#. Translators: Error when saving a pack whose folder no longer exists.
+#: globalPlugins/typix/sound_loader.py:216
+msgid "Pack directory not found."
+msgstr "Папку пакета не знайдено."
+
+#. Translators: Error when a chosen sound isn't a WAV file. {file} is the file
+#. name.
+#: globalPlugins/typix/sound_loader.py:230
+#, python-brace-format
+msgid "{file}: only .wav files are supported."
+msgstr "{file}: підтримуються лише файли .wav."
+
+#. Translators: Error when an imported zip has no pack manifest.
+#: globalPlugins/typix/sound_loader.py:322
+msgid "No manifest.json found in the pack."
+msgstr "У пакеті немає файлу manifest.json."
+
+#. Translators: Error when a file chosen for import isn't a usable zip file.
+#: globalPlugins/typix/sound_loader.py:328
+#: globalPlugins/typix/sound_loader.py:358
+msgid "Invalid zip file."
+msgstr "Недійсний файл ZIP."
+
+#. Translators: Error when an imported pack has no sound files that can be
+#. played.
+#: globalPlugins/typix/sound_loader.py:351
+msgid "The pack has no usable sounds."
+msgstr "У пакеті немає придатних звуків."
+
+#. Translators: Error when importing a pack fails for another reason. {error}
+#. is the system's error message.
+#: globalPlugins/typix/sound_loader.py:361
+#, python-brace-format
+msgid "Import failed: {error}"
+msgstr "Не вдалося імпортувати: {error}"
+
+#. Translators: What is wrong with a misspelled word. {letter} is the letter
+#. that is missing.
+#: globalPlugins/typix/spellcheck.py:251
+#, python-brace-format
+msgid "missing {letter}"
+msgstr "пропущено {letter}"
+
+#. Translators: What is wrong with a misspelled word. {letter} is the letter
+#. that should not be there.
+#: globalPlugins/typix/spellcheck.py:256
+#, python-brace-format
+msgid "extra {letter}"
+msgstr "зайва {letter}"
+
+#. Translators: What is wrong with a misspelled word. {right} is the correct
+#. letter, {wrong} the letter typed.
+#: globalPlugins/typix/spellcheck.py:262
+#, python-brace-format
+msgid "{right} instead of {wrong}"
+msgstr "{right} замість {wrong}"
+
+#. Translators: What is wrong with a misspelled word: two neighbouring letters
+#. typed in the wrong order.
+#: globalPlugins/typix/spellcheck.py:265
+#, python-brace-format
+msgid "{first} and {second} swapped"
+msgstr "{first} і {second} переставлено місцями"
+
+#. Translators: Long description for this add-on, shown on installation and in
+#. the Add-on Store
+#: manifest.ini
+msgid "Typix plays typing sounds in text fields, with separate sounds for letters, capitals, space, Enter, Tab, Backspace, Delete and punctuation. Each character can have its own stereo position and pitch. Comes with mechanical keyboard packs and an editor to make your own, and can beep on misspelled words."
+msgstr "Typix відтворює звуки набору в текстових полях, з окремими звуками для літер, великих літер, пробілу, Enter, Tab, Backspace, Delete і розділових знаків. Кожен символ може мати власне положення в стереопанорамі та власну висоту. У комплекті є пакети звуків механічних клавіатур і редактор для створення власних, а ще Typix може подавати сигнал про слова з помилками."
+
