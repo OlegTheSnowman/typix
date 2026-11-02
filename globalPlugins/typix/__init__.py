@@ -968,7 +968,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             lang = _input_language(obj)
             if addon_spellcheck.check_word(word, lang) is False:
                 self._stats.misspelling()
-                self._last_misspelling = SimpleNamespace(word=word, lang=lang)
+                # With a capital added, the field is about to hold the new form.
+                self._last_misspelling = SimpleNamespace(word=replacement or word, lang=lang)
                 self._alert("MISSPELLED", 880)
 
         if not _is_editable(obj):

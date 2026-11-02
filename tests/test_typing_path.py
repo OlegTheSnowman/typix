@@ -486,6 +486,17 @@ class TestWordCount(unittest.TestCase):
         self.plugin._stats.word.assert_called_once()
         self.plugin._stats.key.assert_not_called()
 
+    def test_the_fix_command_looks_for_the_capitalised_form_of_a_misspelling(self):
+        self.plugin._capitalize_sentences = True
+        self.plugin._spellcheck_enabled = True
+        self.plugin._categories_cfg = {"MISSPELLED": True}
+        self.plugin._alert = mock.MagicMock()
+        self.plugin._last_misspelling = None
+        plugin_module.core.callLater.reset_mock(side_effect=True)
+        with mock.patch.object(plugin_module.addon_spellcheck, "check_word", return_value=False):
+            self.type(" ")
+        self.assertEqual(self.plugin._last_misspelling.word, "Test")
+
     def test_enter_never_starts_a_replacement(self):
         self.plugin._capitalize_sentences = True
         plugin_module.core.callLater.reset_mock(side_effect=True)
