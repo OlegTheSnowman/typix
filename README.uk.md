@@ -54,6 +54,6 @@ python tests/test_sound_loader.py
 
 Вони охоплюють код, якому не потрібна NVDA. Усе в `__init__.py` і `settings.py` треба перевіряти в самій NVDA.
 
-## Автор
+## Автор і ліцензія
 
-Copyright (C) 2025 OlegTheSnowman
+Copyright (C) 2025 OlegTheSnowman. Typix поширюється за ліцензією GNU General Public License версії 2. Текст ліцензії є у файлі [LICENSE](LICENSE).

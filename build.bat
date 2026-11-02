@@ -43,6 +43,7 @@ if exist doc (
 
 echo Copying files to build stage...
 copy manifest.ini %STAGE_DIR% /y
+copy LICENSE %STAGE_DIR% /y
 
 rem Core plugin code and soundpacks (skip __pycache__/.pyc cruft from local test runs)
 xcopy globalPlugins %STAGE_DIR%\globalPlugins /E /I /Y /EXCLUDE:tools\build_exclude.txt

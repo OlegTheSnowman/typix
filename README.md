@@ -54,6 +54,6 @@ python tests/test_sound_loader.py
 
 They cover the code that doesn't need NVDA. Anything in `__init__.py` or `settings.py` has to be tried in NVDA itself.
 
-## Author
+## Author and license
 
-Copyright (C) 2025 OlegTheSnowman
+Copyright (C) 2025 OlegTheSnowman. Typix is released under the GNU General Public License version 2. See [LICENSE](LICENSE).
