@@ -8,7 +8,7 @@ Speeds are net, as typing tests report them: characters you deleted with
 Backspace are taken off. A key held down to auto-repeat isn't typing and
 isn't counted."""
 
-from datetime import date
+from datetime import date, timedelta
 
 from .storage import load_json, save_json
 
@@ -33,13 +33,27 @@ def wpm(chars, seconds):
     return round(chars / 5 / (seconds / 60))
 
 
+def _totals(days):
+    """Adds up day records into the numbers one report section shows."""
+    days = list(days)
+    total = {key: sum(d.get(key, 0) for d in days) for key in (
+        "chars", "timed", "deleted", "words", "misspellings", "active",
+    )}
+    total["speed"] = wpm(total["timed"] - total["deleted"], total["active"])
+    total["misspelling_rate"] = (
+        round(total["misspellings"] * 100 / total["words"], 1) if total["words"] else None
+    )
+    return total
+
+
 class TypingStats:
     def __init__(self, path):
         self.path = path
         data = load_json(path, {})
         if not isinstance(data, dict):
             data = {}
-        self.days = data.get("days") if isinstance(data.get("days"), dict) else {}
+        days = data.get("days") if isinstance(data.get("days"), dict) else {}
+        self.days = {day: record for day, record in days.items() if isinstance(record, dict)}
         self.best = data.get("best_wpm") or 0
         self._last = None          # time of the last key
         self._burst_start = None   # time the current stretch began
@@ -78,6 +92,10 @@ class TypingStats:
         if self._unsaved >= SAVE_EVERY:
             self.save()
 
+    def word(self):
+        """Counts a word finished by a key that isn't counted as a character."""
+        self._today()["words"] += 1
+
     def misspelling(self):
         self._today()["misspellings"] += 1
 
@@ -113,6 +131,26 @@ class TypingStats:
             "today_misspellings": today["misspellings"],
             "all_time": wpm(net, active),
             "best": best or None,
+        }
+
+    def details(self, days=7):
+        """Everything for the statistics report: the summary, totals for
+        today, the last few days and all time, the days typed on, and the
+        most recent of them, newest first."""
+        summary = self.summary()
+        today = date.today()
+        recent = {(today - timedelta(n)).isoformat() for n in range(days)}
+        typed = [d for d in sorted(self.days, reverse=True) if self.days[d].get("chars")]
+        busiest = max(typed, key=lambda d: self.days[d].get("words", 0), default=None)
+        return {
+            "summary": summary,
+            "today": _totals([self.days[today.isoformat()]]),
+            "recent": _totals(v for d, v in self.days.items() if d in recent),
+            "all_time": _totals(self.days.values()),
+            "days_typed": len(typed),
+            "best": summary["best"],
+            "busiest": (busiest, self.days[busiest].get("words", 0)) if busiest else None,
+            "history": [(d, _totals([self.days[d]])) for d in typed[:days]],
         }
 
     def save(self):

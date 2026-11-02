@@ -313,6 +313,49 @@ class TestReplace(unittest.TestCase):
         self.assertFalse(self.plugin._own_chars)
 
 
+class TestWordCount(unittest.TestCase):
+    def setUp(self):
+        self.plugin = plugin_module.GlobalPlugin.__new__(plugin_module.GlobalPlugin)
+        self.plugin._own_chars = plugin_module.deque()
+        self.plugin._own_deadline = 0.0
+        self.plugin._apostrophe_word = None
+        self.plugin._expansions = {}
+        self.plugin._capitalize_i = False
+        self.plugin._capitalize_sentences = False
+        self.plugin._spellcheck_enabled = False
+        self.plugin._enabled = False
+        self.plugin._categories_cfg = {"MISSPELLED": False}
+        self.plugin._stats = mock.MagicMock()
+        plugin_module.api.isTypingProtected.return_value = False
+        plugin_module.speech.speech._curWordChars = list("test")
+        self.field = FakeField("test")
+        self.field.states = {plugin_module.controlTypes.State.EDITABLE}
+
+    def type(self, ch):
+        self.plugin.event_typedCharacter(self.field, mock.MagicMock(), ch)
+
+    def test_enter_finishes_a_word_without_counting_as_a_character(self):
+        self.type("\r")
+        self.plugin._stats.word.assert_called_once()
+        self.plugin._stats.key.assert_not_called()
+
+    def test_enter_on_an_empty_line_finishes_nothing(self):
+        plugin_module.speech.speech._curWordChars = []
+        self.type("\r")
+        self.plugin._stats.word.assert_not_called()
+
+    def test_backspace_does_not_finish_a_word(self):
+        self.type("\x08")
+        self.plugin._stats.word.assert_not_called()
+        self.plugin._stats.key.assert_not_called()
+
+    def test_space_still_counts_as_a_character_and_a_word(self):
+        self.type(" ")
+        self.plugin._stats.key.assert_called_once()
+        self.assertTrue(self.plugin._stats.key.call_args[1]["word_ended"])
+        self.plugin._stats.word.assert_not_called()
+
+
 class TestLinesBeforeCaret(unittest.TestCase):
     def test_second_place_is_really_the_line_above(self):
         places = [p.text for p in plugin_module._lines_before_caret(FakeField("one\ntwo three"))]

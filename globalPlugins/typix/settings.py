@@ -504,6 +504,135 @@ class ManageDictionaryDialog(wx.Dialog):
             self._refresh(idx)
 
 
+def _speed_text(wpm):
+    if wpm is None:
+        # Translators: Shown in the typing statistics instead of a speed when too little was typed to measure it.
+        return _("not enough typing to measure")
+    # Translators: A typing speed in the typing statistics. {wpm} is the number of words per minute.
+    return ngettext("{wpm} word per minute", "{wpm} words per minute", wpm).format(wpm=wpm)
+
+
+def _time_text(seconds):
+    minutes = round(seconds / 60)
+    if not minutes:
+        # Translators: Time spent typing in the typing statistics, when it's under a minute.
+        return _("less than a minute")
+    hours, minutes = divmod(minutes, 60)
+    parts = []
+    if hours:
+        # Translators: Part of the time spent typing in the typing statistics.
+        parts.append(ngettext("{n} hour", "{n} hours", hours).format(n=hours))
+    if minutes:
+        # Translators: Part of the time spent typing in the typing statistics.
+        parts.append(ngettext("{n} minute", "{n} minutes", minutes).format(n=minutes))
+    return " ".join(parts)
+
+
+def _period_lines(period):
+    lines = [
+        # Translators: Line in the typing statistics.
+        _("Words: {n}").format(n=period["words"]),
+        # Translators: Line in the typing statistics.
+        _("Characters typed: {n}").format(n=period["chars"]),
+        # Translators: Line in the typing statistics.
+        _("Characters deleted with Backspace: {n}").format(n=period["deleted"]),
+        # Translators: Line in the typing statistics.
+        _("Misspellings: {n}").format(n=period["misspellings"]),
+        # Translators: Line in the typing statistics. {time} is a time like 1 hour 5 minutes.
+        _("Time spent typing: {time}").format(time=_time_text(period["active"])),
+        # Translators: Line in the typing statistics. {speed} is a speed like 40 words per minute.
+        _("Average speed: {speed}").format(speed=_speed_text(period["speed"])),
+    ]
+    if period["misspelling_rate"] is not None:
+        # Translators: Line in the typing statistics. {rate} is a number like 2.5.
+        lines.append(_("Misspellings per 100 words: {rate}").format(rate=period["misspelling_rate"]))
+    return lines
+
+
+def stats_text(details):
+    """The statistics report: one line that sums it up, then the detail."""
+    n = details["summary"]
+    parts = []
+    if n["current"]:
+        # Translators: Part of the statistics summary: speed of the stretch being typed now. {speed} is a speed like 40 words per minute.
+        parts.append(_("Current speed: {speed}").format(speed=_speed_text(n["current"])))
+    if n["today"]:
+        # Translators: Part of the statistics summary. {speed} is a speed like 40 words per minute.
+        parts.append(_("Average speed today: {speed}").format(speed=_speed_text(n["today"])))
+    # Translators: Part of the statistics summary.
+    parts.append(_("Words today: {n}").format(n=n["today_words"]))
+    # Translators: Part of the statistics summary.
+    parts.append(_("Misspellings today: {n}").format(n=n["today_misspellings"]))
+    if n["all_time"]:
+        # Translators: Part of the statistics summary. {speed} is a speed like 40 words per minute.
+        parts.append(_("Average speed over all days: {speed}").format(speed=_speed_text(n["all_time"])))
+    if n["best"]:
+        # Translators: Line in the typing statistics: the fastest stretch of at least 50 keys. {speed} is a speed like 40 words per minute.
+        parts.append(_("Best speed: {speed}").format(speed=_speed_text(n["best"])))
+    lines = [". ".join(parts)]
+    # Translators: Heading in the typing statistics.
+    lines += ["", _("Today")] + _period_lines(details["today"])
+    # Translators: Heading in the typing statistics.
+    lines += ["", _("Last 7 days")] + _period_lines(details["recent"])
+    # Translators: Heading in the typing statistics.
+    lines += ["", _("All time")] + _period_lines(details["all_time"])
+    # Translators: Line in the typing statistics: how many days have any typing.
+    lines.append(_("Days with typing: {n}").format(n=details["days_typed"]))
+    if details["best"]:
+        # Translators: Line in the typing statistics: the fastest stretch of at least 50 keys. {speed} is a speed like 40 words per minute.
+        lines.append(_("Best speed: {speed}").format(speed=_speed_text(details["best"])))
+    if details["busiest"]:
+        day, words = details["busiest"]
+        # Translators: Line in the typing statistics. {day} is a date, {words} the words typed that day.
+        lines.append(_("Busiest day: {day}, words {words}").format(day=day, words=words))
+    if details["history"]:
+        # Translators: Heading in the typing statistics, above one line for each of the last days with typing.
+        lines += ["", _("Recent days")]
+        for day, period in details["history"]:
+            lines.append(
+                # Translators: One day in the typing statistics. {day} is a date, {speed} a speed like 40 words per minute.
+                _("{day}: words {words}, misspellings {misspellings}, speed {speed}").format(
+                    day=day, words=period["words"], misspellings=period["misspellings"],
+                    speed=_speed_text(period["speed"]),
+                ),
+            )
+    return "\n".join(lines)
+
+
+class StatsDialog(wx.Dialog):
+    """The statistics report in a read-only field, to read line by line."""
+
+    def __init__(self, parent, text):
+        # Translators: Title of the typing statistics dialog.
+        super().__init__(parent, title=_("Typing statistics"), style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+        main = wx.BoxSizer(wx.VERTICAL)
+        helper = guiHelper.BoxSizerHelper(self, orientation=wx.VERTICAL)
+        self.textCtrl = helper.addLabeledControl(
+            # Translators: Label of the read-only field in the typing statistics dialog.
+            _("&Statistics:"), wx.TextCtrl, value=text,
+            style=wx.TE_MULTILINE | wx.TE_READONLY, size=(520, 380),
+        )
+        helper.addDialogDismissButtons(wx.CLOSE)
+        self.Bind(wx.EVT_BUTTON, lambda e: self.EndModal(wx.ID_CLOSE), id=wx.ID_CLOSE)
+        self.SetEscapeId(wx.ID_CLOSE)
+        main.Add(helper.sizer, 1, border=guiHelper.BORDER_FOR_DIALOGS, flag=wx.ALL | wx.EXPAND)
+        self.SetSizerAndFit(main)
+        self.CentreOnParent()
+        self.textCtrl.SetInsertionPoint(0)
+        self.Bind(wx.EVT_SHOW, self._on_show)
+
+    def _on_show(self, event):
+        event.Skip()
+        if event.IsShown():
+            # Once on screen: taking focus while hidden can leave the dialog
+            # behind the window that was in front.
+            wx.CallAfter(self._to_front)
+
+    def _to_front(self):
+        self.Raise()
+        self.textCtrl.SetFocus()
+
+
 class TypixSettingsPanel(gui.settingsDialogs.SettingsPanel):
     # Translators: Title of the Typix category in NVDA's settings dialog.
     title = _("Typix")

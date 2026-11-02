@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: 'typix' '1.0.0'\n"
+"Project-Id-Version: 'typix' '1.0.1'\n"
 "Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
-"POT-Creation-Date: 2026-11-02 18:05+0200\n"
+"POT-Creation-Date: 2026-11-02 18:17+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,129 +22,85 @@ msgstr ""
 #. Translators: Title of the Typix category in NVDA's settings dialog.
 #. Translators: Summary/title for this add-on, shown on installation and in the
 #. Add-on Store
-#: globalPlugins/typix/__init__.py:174 globalPlugins/typix/__init__.py:227
-#: globalPlugins/typix/settings.py:509 manifest.ini
+#: globalPlugins/typix/__init__.py:177 globalPlugins/typix/__init__.py:231
+#: globalPlugins/typix/settings.py:638 manifest.ini
 msgid "Typix"
 msgstr ""
 
 #. Translators: Item in NVDA menu, Tools, Typix that opens the custom spelling
 #. dictionary.
-#: globalPlugins/typix/__init__.py:224
+#: globalPlugins/typix/__init__.py:228
 msgid "Manage &Dictionary..."
 msgstr ""
 
 #. Translators: Spoken when the toggle command turns typing sounds on.
-#: globalPlugins/typix/__init__.py:301
+#: globalPlugins/typix/__init__.py:305
 msgid "Typix sounds on"
 msgstr ""
 
 #. Translators: Spoken when the toggle command turns typing sounds off.
-#: globalPlugins/typix/__init__.py:304
+#: globalPlugins/typix/__init__.py:308
 msgid "Typix sounds off"
 msgstr ""
 
 #. Translators: Description of the toggle command in NVDA's Input gestures
 #. dialog.
-#: globalPlugins/typix/__init__.py:306
+#: globalPlugins/typix/__init__.py:310
 msgid "Toggles Typix typing sounds on and off"
 msgstr ""
 
 #. Translators: Spoken when the selection spelling check is started while one
 #. is already running.
-#: globalPlugins/typix/__init__.py:311
+#: globalPlugins/typix/__init__.py:315
 msgid "A selection spelling check is already in progress"
-msgstr ""
-
-#. Translators: Part of the typing statistics: speed of the stretch being typed
-#. now. {wpm} is words per minute.
-#: globalPlugins/typix/__init__.py:334
-#, python-brace-format
-msgid "Now {wpm} words per minute"
-msgstr ""
-
-#. Translators: Part of the typing statistics: average speed today. {wpm} is
-#. words per minute.
-#: globalPlugins/typix/__init__.py:337
-#, python-brace-format
-msgid "today {wpm} on average"
-msgstr ""
-
-#. Translators: Part of the typing statistics: words typed today.
-#: globalPlugins/typix/__init__.py:339
-#, python-brace-format
-msgid "{n} word today"
-msgid_plural "{n} words today"
-msgstr[0] ""
-msgstr[1] ""
-
-#. Translators: Part of the typing statistics: misspellings today.
-#: globalPlugins/typix/__init__.py:341
-#, python-brace-format
-msgid "{n} misspelling"
-msgid_plural "{n} misspellings"
-msgstr[0] ""
-msgstr[1] ""
-
-#. Translators: Part of the typing statistics: average speed over all saved
-#. days. {wpm} is words per minute.
-#: globalPlugins/typix/__init__.py:344
-#, python-brace-format
-msgid "all time average {wpm}"
-msgstr ""
-
-#. Translators: Part of the typing statistics: the fastest stretch of typing
-#. ever measured. {wpm} is words per minute.
-#: globalPlugins/typix/__init__.py:347
-#, python-brace-format
-msgid "best {wpm}"
 msgstr ""
 
 #. Translators: Spoken when no spelling dictionary is ready yet for the current
 #. keyboard language.
-#: globalPlugins/typix/__init__.py:354
+#: globalPlugins/typix/__init__.py:340
 msgid "Spellcheck dictionary is not available yet, try again in a moment"
 msgstr ""
 
 #. Translators: Description of the spelling command in NVDA's Input gestures
 #. dialog.
-#: globalPlugins/typix/__init__.py:367
+#: globalPlugins/typix/__init__.py:353
 msgid "Checks the spelling of selected text; with nothing selected, fixes the last misspelled word you typed, or reports your typing statistics when there is none"
 msgstr ""
 
 #. Translators: Spoken when the selection spelling check finds no misspelled
 #. words.
-#: globalPlugins/typix/__init__.py:404
+#: globalPlugins/typix/__init__.py:402
 msgid "No spelling errors found"
 msgstr ""
 
 #. Translators: Spoken when the selection spelling check ends without any word
 #. replaced.
-#: globalPlugins/typix/__init__.py:407
+#: globalPlugins/typix/__init__.py:405
 msgid "No changes made"
 msgstr ""
 
 #. Translators: Spoken when corrected text can't be written because the field
 #. is read-only.
-#: globalPlugins/typix/__init__.py:410
+#: globalPlugins/typix/__init__.py:408
 msgid "Cannot replace text, the field is read-only"
 msgstr ""
 
 #. Translators: Choice in the spelling suggestions list. {word} is the
 #. misspelled word.
-#: globalPlugins/typix/__init__.py:425
+#: globalPlugins/typix/__init__.py:423
 #, python-brace-format
 msgid "Add {word} to dictionary"
 msgstr ""
 
 #. Translators: Choice in the spelling suggestions list that leaves the word as
 #. it is.
-#: globalPlugins/typix/__init__.py:427
+#: globalPlugins/typix/__init__.py:425
 msgid "Skip"
 msgstr ""
 
 #. Translators: Message of the spelling suggestions dialog. {word} is the
 #. misspelled word, {count} the number of suggestions.
-#: globalPlugins/typix/__init__.py:431
+#: globalPlugins/typix/__init__.py:429
 #, python-brace-format
 msgid "{word} is misspelled. {count} suggestion."
 msgid_plural "{word} is misspelled. {count} suggestions."
@@ -153,37 +109,37 @@ msgstr[1] ""
 
 #. Translators: Message of the spelling suggestions dialog when there are no
 #. suggestions. {word} is the misspelled word.
-#: globalPlugins/typix/__init__.py:437
+#: globalPlugins/typix/__init__.py:435
 #, python-brace-format
 msgid "{word} is misspelled. No suggestions."
 msgstr ""
 
 #. Translators: Title of the spelling suggestions dialog.
-#: globalPlugins/typix/__init__.py:439
+#: globalPlugins/typix/__init__.py:437
 msgid "Spelling suggestions"
 msgstr ""
 
 #. Translators: Spoken when focus doesn't return to the text field after the
 #. suggestions dialog.
-#: globalPlugins/typix/__init__.py:555
+#: globalPlugins/typix/__init__.py:553
 msgid "Could not get back to the text, nothing replaced"
 msgstr ""
 
 #. Translators: Spoken when the misspelled word can't be selected safely for
 #. replacing. {word} is that word.
-#: globalPlugins/typix/__init__.py:560
+#: globalPlugins/typix/__init__.py:558
 #, python-brace-format
 msgid "Could not select {word} safely, nothing replaced"
 msgstr ""
 
 #. Translators: Spoken when the selection changed during the spelling check, so
 #. nothing is corrected.
-#: globalPlugins/typix/__init__.py:594
+#: globalPlugins/typix/__init__.py:592
 msgid "The selection changed, nothing replaced"
 msgstr ""
 
 #. Translators: Spoken after the selection check corrected the words.
-#: globalPlugins/typix/__init__.py:626
+#: globalPlugins/typix/__init__.py:624
 msgid "Corrected"
 msgstr ""
 
@@ -480,7 +436,7 @@ msgstr ""
 
 #. Translators: Title of message boxes about a sound pack.
 #. Translators: Group in Typix settings for choosing and managing sound packs.
-#: globalPlugins/typix/settings.py:435 globalPlugins/typix/settings.py:551
+#: globalPlugins/typix/settings.py:435 globalPlugins/typix/settings.py:680
 msgid "Sound pack"
 msgstr ""
 
@@ -527,192 +483,364 @@ msgstr ""
 msgid "Language"
 msgstr ""
 
+#. Translators: Shown in the typing statistics instead of a speed when too
+#. little was typed to measure it.
+#: globalPlugins/typix/settings.py:510
+msgid "not enough typing to measure"
+msgstr ""
+
+#. Translators: A typing speed in the typing statistics. {wpm} is the number of
+#. words per minute.
+#: globalPlugins/typix/settings.py:512
+#, python-brace-format
+msgid "{wpm} word per minute"
+msgid_plural "{wpm} words per minute"
+msgstr[0] ""
+msgstr[1] ""
+
+#. Translators: Time spent typing in the typing statistics, when it's under a
+#. minute.
+#: globalPlugins/typix/settings.py:519
+msgid "less than a minute"
+msgstr ""
+
+#. Translators: Part of the time spent typing in the typing statistics.
+#: globalPlugins/typix/settings.py:524
+#, python-brace-format
+msgid "{n} hour"
+msgid_plural "{n} hours"
+msgstr[0] ""
+msgstr[1] ""
+
+#. Translators: Part of the time spent typing in the typing statistics.
+#: globalPlugins/typix/settings.py:527
+#, python-brace-format
+msgid "{n} minute"
+msgid_plural "{n} minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#. Translators: Line in the typing statistics.
+#: globalPlugins/typix/settings.py:534
+#, python-brace-format
+msgid "Words: {n}"
+msgstr ""
+
+#. Translators: Line in the typing statistics.
+#: globalPlugins/typix/settings.py:536
+#, python-brace-format
+msgid "Characters typed: {n}"
+msgstr ""
+
+#. Translators: Line in the typing statistics.
+#: globalPlugins/typix/settings.py:538
+#, python-brace-format
+msgid "Characters deleted with Backspace: {n}"
+msgstr ""
+
+#. Translators: Line in the typing statistics.
+#: globalPlugins/typix/settings.py:540
+#, python-brace-format
+msgid "Misspellings: {n}"
+msgstr ""
+
+#. Translators: Line in the typing statistics. {time} is a time like 1 hour 5
+#. minutes.
+#: globalPlugins/typix/settings.py:542
+#, python-brace-format
+msgid "Time spent typing: {time}"
+msgstr ""
+
+#. Translators: Line in the typing statistics. {speed} is a speed like 40 words
+#. per minute.
+#: globalPlugins/typix/settings.py:544
+#, python-brace-format
+msgid "Average speed: {speed}"
+msgstr ""
+
+#. Translators: Line in the typing statistics. {rate} is a number like 2.5.
+#: globalPlugins/typix/settings.py:548
+#, python-brace-format
+msgid "Misspellings per 100 words: {rate}"
+msgstr ""
+
+#. Translators: Part of the statistics summary: speed of the stretch being
+#. typed now. {speed} is a speed like 40 words per minute.
+#: globalPlugins/typix/settings.py:558
+#, python-brace-format
+msgid "Current speed: {speed}"
+msgstr ""
+
+#. Translators: Part of the statistics summary. {speed} is a speed like 40
+#. words per minute.
+#: globalPlugins/typix/settings.py:561
+#, python-brace-format
+msgid "Average speed today: {speed}"
+msgstr ""
+
+#. Translators: Part of the statistics summary.
+#: globalPlugins/typix/settings.py:563
+#, python-brace-format
+msgid "Words today: {n}"
+msgstr ""
+
+#. Translators: Part of the statistics summary.
+#: globalPlugins/typix/settings.py:565
+#, python-brace-format
+msgid "Misspellings today: {n}"
+msgstr ""
+
+#. Translators: Part of the statistics summary. {speed} is a speed like 40
+#. words per minute.
+#: globalPlugins/typix/settings.py:568
+#, python-brace-format
+msgid "Average speed over all days: {speed}"
+msgstr ""
+
+#. Translators: Line in the typing statistics: the fastest stretch of at least
+#. 50 keys. {speed} is a speed like 40 words per minute.
+#: globalPlugins/typix/settings.py:571 globalPlugins/typix/settings.py:583
+#, python-brace-format
+msgid "Best speed: {speed}"
+msgstr ""
+
+#. Translators: Heading in the typing statistics.
+#: globalPlugins/typix/settings.py:574
+msgid "Today"
+msgstr ""
+
+#. Translators: Heading in the typing statistics.
+#: globalPlugins/typix/settings.py:576
+msgid "Last 7 days"
+msgstr ""
+
+#. Translators: Heading in the typing statistics.
+#: globalPlugins/typix/settings.py:578
+msgid "All time"
+msgstr ""
+
+#. Translators: Line in the typing statistics: how many days have any typing.
+#: globalPlugins/typix/settings.py:580
+#, python-brace-format
+msgid "Days with typing: {n}"
+msgstr ""
+
+#. Translators: Line in the typing statistics. {day} is a date, {words} the
+#. words typed that day.
+#: globalPlugins/typix/settings.py:587
+#, python-brace-format
+msgid "Busiest day: {day}, words {words}"
+msgstr ""
+
+#. Translators: Heading in the typing statistics, above one line for each of
+#. the last days with typing.
+#: globalPlugins/typix/settings.py:590
+msgid "Recent days"
+msgstr ""
+
+#. Translators: One day in the typing statistics. {day} is a date, {speed} a
+#. speed like 40 words per minute.
+#: globalPlugins/typix/settings.py:594
+#, python-brace-format
+msgid "{day}: words {words}, misspellings {misspellings}, speed {speed}"
+msgstr ""
+
+#. Translators: Title of the typing statistics dialog.
+#: globalPlugins/typix/settings.py:607
+msgid "Typing statistics"
+msgstr ""
+
+#. Translators: Label of the read-only field in the typing statistics dialog.
+#: globalPlugins/typix/settings.py:612
+msgid "&Statistics:"
+msgstr ""
+
 #. Translators: Checkbox that turns all typing sounds on or off.
-#: globalPlugins/typix/settings.py:517
+#: globalPlugins/typix/settings.py:646
 msgid "&Play typing sounds"
 msgstr ""
 
 #. Translators: Group in Typix settings for volume, panning and sound
 #. categories.
-#: globalPlugins/typix/settings.py:521
+#: globalPlugins/typix/settings.py:650
 msgid "Sounds"
 msgstr ""
 
 #. Translators: Label of the typing sound volume slider.
-#: globalPlugins/typix/settings.py:524
+#: globalPlugins/typix/settings.py:653
 msgid "&Volume:"
 msgstr ""
 
 #. Translators: Checkbox that lets each key sound from its own place in stereo.
-#: globalPlugins/typix/settings.py:528
+#: globalPlugins/typix/settings.py:657
 msgid "Stereo pannin&g per key"
 msgstr ""
 
 #. Translators: Label of the slider for how far sounds can pan left and right.
-#: globalPlugins/typix/settings.py:532
+#: globalPlugins/typix/settings.py:661
 msgid "Panning &width:"
 msgstr ""
 
 #. Translators: Label of the field that ignores fast repeats of the same key.
-#: globalPlugins/typix/settings.py:537
+#: globalPlugins/typix/settings.py:666
 msgid "Key repeat &filter, ignores the same key again within this many milliseconds, 0 is off:"
 msgstr ""
 
 #. Translators: Label of the checklist of sound categories that play.
-#: globalPlugins/typix/settings.py:542
+#: globalPlugins/typix/settings.py:671
 msgid "Play sounds f&or:"
 msgstr ""
 
 #. Translators: Label of the list of installed sound packs.
-#: globalPlugins/typix/settings.py:554
+#: globalPlugins/typix/settings.py:683
 msgid "Sound pac&k:"
 msgstr ""
 
 #. Translators: Label of the list of sounds in the selected pack.
-#: globalPlugins/typix/settings.py:557
+#: globalPlugins/typix/settings.py:686
 msgid "Pr&eview sound:"
 msgstr ""
 
 #. Translators: Button that plays the selected preview sound.
-#: globalPlugins/typix/settings.py:560
+#: globalPlugins/typix/settings.py:689
 msgid "Pla&y"
 msgstr ""
 
 #. Translators: Button that opens the editor for the selected pack.
-#: globalPlugins/typix/settings.py:562
+#: globalPlugins/typix/settings.py:691
 msgid "Edi&t pack..."
 msgstr ""
 
 #. Translators: Button that creates a new sound pack.
-#: globalPlugins/typix/settings.py:564
+#: globalPlugins/typix/settings.py:693
 msgid "&New pack..."
 msgstr ""
 
 #. Translators: Button that installs a sound pack from a zip file.
-#: globalPlugins/typix/settings.py:568
+#: globalPlugins/typix/settings.py:697
 msgid "&Import pack..."
 msgstr ""
 
 #. Translators: Button that saves the selected pack as a zip file.
-#: globalPlugins/typix/settings.py:570
+#: globalPlugins/typix/settings.py:699
 msgid "E&xport pack..."
 msgstr ""
 
 #. Translators: Button that deletes the selected pack.
-#: globalPlugins/typix/settings.py:572
+#: globalPlugins/typix/settings.py:701
 msgid "&Delete pack"
 msgstr ""
 
 #. Translators: Button that opens the sound packs folder in File Explorer.
-#: globalPlugins/typix/settings.py:574
+#: globalPlugins/typix/settings.py:703
 msgid "Open packs folder"
 msgstr ""
 
 #. Translators: Group in Typix settings for pan and pitch rules that apply to
 #. every pack.
-#: globalPlugins/typix/settings.py:580
+#: globalPlugins/typix/settings.py:709
 msgid "Character rules for every pack"
 msgstr ""
 
 #. Translators: Label of the list of character rules.
-#: globalPlugins/typix/settings.py:583
+#: globalPlugins/typix/settings.py:712
 msgid "R&ules:"
 msgstr ""
 
 #. Translators: Button that adds a character rule.
-#: globalPlugins/typix/settings.py:586
+#: globalPlugins/typix/settings.py:715
 msgid "Add rule..."
 msgstr ""
 
 #. Translators: Button that edits the selected character rule.
-#: globalPlugins/typix/settings.py:588
+#: globalPlugins/typix/settings.py:717
 msgid "Edit rule..."
 msgstr ""
 
 #. Translators: Button that removes the selected character rule.
-#: globalPlugins/typix/settings.py:590
+#: globalPlugins/typix/settings.py:719
 msgid "Remove rule"
 msgstr ""
 
 #. Translators: Group in Typix settings for text replacements and automatic
 #. capitals.
-#: globalPlugins/typix/settings.py:596
+#: globalPlugins/typix/settings.py:725
 msgid "Text replacements"
 msgstr ""
 
 #. Translators: Label of the list of text replacements, each a shortcut and the
 #. text it becomes.
-#: globalPlugins/typix/settings.py:599
+#: globalPlugins/typix/settings.py:728
 msgid "Replace&ments:"
 msgstr ""
 
 #. Translators: Button that adds a text replacement.
-#: globalPlugins/typix/settings.py:602
+#: globalPlugins/typix/settings.py:731
 msgid "Add replacement..."
 msgstr ""
 
 #. Translators: Button that edits the selected text replacement.
-#: globalPlugins/typix/settings.py:604
+#: globalPlugins/typix/settings.py:733
 msgid "Edit replacement..."
 msgstr ""
 
 #. Translators: Button that removes the selected text replacement.
-#: globalPlugins/typix/settings.py:606
+#: globalPlugins/typix/settings.py:735
 msgid "Remove replacement"
 msgstr ""
 
 #. Translators: Checkbox that capitalises the first word of each sentence as
 #. you type.
-#: globalPlugins/typix/settings.py:610
+#: globalPlugins/typix/settings.py:739
 msgid "Capitali&ze the first word of a sentence"
 msgstr ""
 
 #. Translators: Checkbox that turns a lone lowercase i, and i'm, i'll and so
 #. on, into a capital I.
-#: globalPlugins/typix/settings.py:615
+#: globalPlugins/typix/settings.py:744
 msgid "Capital I when i stands a&lone"
 msgstr ""
 
 #. Translators: Group in Typix settings for spelling options.
-#: globalPlugins/typix/settings.py:622
+#: globalPlugins/typix/settings.py:751
 msgid "Spelling"
 msgstr ""
 
 #. Translators: Checkbox that plays an alert after typing a misspelled word.
-#: globalPlugins/typix/settings.py:625
+#: globalPlugins/typix/settings.py:754
 msgid "Beep on mi&sspelled words as you type"
 msgstr ""
 
 #. Translators: Button that opens the custom spelling dictionary.
-#: globalPlugins/typix/settings.py:629
+#: globalPlugins/typix/settings.py:758
 msgid "&Custom dictionary..."
 msgstr ""
 
 #. Translators: A pack in the pack list. {name} is the pack name, {author} its
 #. author.
-#: globalPlugins/typix/settings.py:652
+#: globalPlugins/typix/settings.py:781
 #, python-brace-format
 msgid "{name} by {author}"
 msgstr ""
 
 #. Translators: Prompt of the dialog that asks for a new pack's name.
-#: globalPlugins/typix/settings.py:704
+#: globalPlugins/typix/settings.py:833
 msgid "Name of the new sound pack:"
 msgstr ""
 
 #. Translators: Title of dialogs about creating a new sound pack.
 #. Translators: Title of the error message when a new pack can't be created.
-#: globalPlugins/typix/settings.py:706 globalPlugins/typix/settings.py:717
+#: globalPlugins/typix/settings.py:835 globalPlugins/typix/settings.py:846
 msgid "New sound pack"
 msgstr ""
 
 #. Translators: Error when a new pack can't be created.
-#: globalPlugins/typix/settings.py:715
+#: globalPlugins/typix/settings.py:844
 msgid "Could not create the pack. A pack with that name may already exist."
 msgstr ""
 
 #. Translators: Title of the file dialog for exporting a pack.
-#: globalPlugins/typix/settings.py:732
+#: globalPlugins/typix/settings.py:861
 msgid "Export sound pack"
 msgstr ""
 
@@ -720,71 +848,71 @@ msgstr ""
 #. unchanged.
 #. Translators: File type filter in the open file dialog. Keep the |*.zip part
 #. unchanged.
-#: globalPlugins/typix/settings.py:734 globalPlugins/typix/settings.py:762
+#: globalPlugins/typix/settings.py:863 globalPlugins/typix/settings.py:891
 msgid "ZIP files (*.zip)|*.zip"
 msgstr ""
 
 #. Translators: Message after a pack was exported.
-#: globalPlugins/typix/settings.py:742
+#: globalPlugins/typix/settings.py:871
 msgid "Pack exported."
 msgstr ""
 
 #. Translators: Title of message boxes about exporting a pack.
-#: globalPlugins/typix/settings.py:744 globalPlugins/typix/settings.py:752
+#: globalPlugins/typix/settings.py:873 globalPlugins/typix/settings.py:881
 msgid "Export"
 msgstr ""
 
 #. Translators: Message after exporting a pack failed.
-#: globalPlugins/typix/settings.py:750
+#: globalPlugins/typix/settings.py:879
 msgid "Export failed."
 msgstr ""
 
 #. Translators: Title of the file dialog for importing a pack.
-#: globalPlugins/typix/settings.py:760
+#: globalPlugins/typix/settings.py:889
 msgid "Import sound pack"
 msgstr ""
 
 #. Translators: Asks whether to replace an existing pack on import. {name} is
 #. the pack folder name.
-#: globalPlugins/typix/settings.py:772
+#: globalPlugins/typix/settings.py:901
 #, python-brace-format
 msgid "A pack named {name} already exists. Replace it?"
 msgstr ""
 
 #. Translators: Title of message boxes about importing a pack.
 #. Translators: Title of the error message when importing a pack failed.
-#: globalPlugins/typix/settings.py:774 globalPlugins/typix/settings.py:785
-#: globalPlugins/typix/settings.py:790
+#: globalPlugins/typix/settings.py:903 globalPlugins/typix/settings.py:914
+#: globalPlugins/typix/settings.py:919
 msgid "Import"
 msgstr ""
 
 #. Translators: Message after a pack was imported. {name} is the pack folder
 #. name.
-#: globalPlugins/typix/settings.py:783
+#: globalPlugins/typix/settings.py:912
 #, python-brace-format
 msgid "Pack {name} imported."
 msgstr ""
 
 #. Translators: Asks to confirm deleting a pack. {name} is the pack folder
 #. name.
-#: globalPlugins/typix/settings.py:798
+#: globalPlugins/typix/settings.py:927
 #, python-brace-format
 msgid "Delete the pack {name}? This cannot be undone."
 msgstr ""
 
 #. Translators: Title of message boxes about deleting a pack.
-#: globalPlugins/typix/settings.py:800 globalPlugins/typix/settings.py:808
+#: globalPlugins/typix/settings.py:929 globalPlugins/typix/settings.py:937
 msgid "Delete pack"
 msgstr ""
 
 #. Translators: Error when a pack couldn't be deleted.
-#: globalPlugins/typix/settings.py:806
+#: globalPlugins/typix/settings.py:935
 msgid "Could not delete the pack."
 msgstr ""
 
 #. Translators: A text replacement in the list. {shortcut} is what you type,
 #. {text} what it becomes.
-#: globalPlugins/typix/settings.py:865
+#: globalPlugins/typix/settings.py:994
 #, python-brace-format
 msgid "{shortcut} becomes {text}"
 msgstr ""

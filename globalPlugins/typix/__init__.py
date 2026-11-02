@@ -61,6 +61,9 @@ _SPECIAL_KEYS = {
 # Control characters typed through event_typedCharacter that the gesture
 # hook above already plays, so they must not play twice.
 _CONTROL_CHARS = {"\x08", "\x7f", "\r", "\n", "\t", "\x1b"}
+# What Enter types. It isn't a character for the statistics, but it does
+# finish a word.
+_LINE_ENDS = ("\r", "\n")
 
 # NVDA's "speak typed words" setting. Typix only runs this in edit fields,
 # so every value but off means speak.
@@ -206,6 +209,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         self._selection_check = None     # state of a running selection spellcheck
         self._last_misspelling = None    # word and language for the fix command
         self._apostrophe_word = None     # NVDA's word held back at an apostrophe
+        self._stats_open = False         # the statistics dialog is showing
         self._own_chars = deque()        # characters Typix typed, on their way back
         self._own_deadline = 0.0         # when to stop expecting them
         # Typing statistics, kept across sessions; counts only, never text.
@@ -327,25 +331,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 )
                 return
             self._last_misspelling = None
-            n = self._stats.summary()
-            parts = []
-            if n["current"]:
-                # Translators: Part of the typing statistics: speed of the stretch being typed now. {wpm} is words per minute.
-                parts.append(_("Now {wpm} words per minute").format(wpm=n["current"]))
-            if n["today"]:
-                # Translators: Part of the typing statistics: average speed today. {wpm} is words per minute.
-                parts.append(_("today {wpm} on average").format(wpm=n["today"]))
-            # Translators: Part of the typing statistics: words typed today.
-            parts.append(ngettext("{n} word today", "{n} words today", n["today_words"]).format(n=n["today_words"]))
-            # Translators: Part of the typing statistics: misspellings today.
-            parts.append(ngettext("{n} misspelling", "{n} misspellings", n["today_misspellings"]).format(n=n["today_misspellings"]))
-            if n["all_time"]:
-                # Translators: Part of the typing statistics: average speed over all saved days. {wpm} is words per minute.
-                parts.append(_("all time average {wpm}").format(wpm=n["all_time"]))
-            if n["best"]:
-                # Translators: Part of the typing statistics: the fastest stretch of typing ever measured. {wpm} is words per minute.
-                parts.append(_("best {wpm}").format(wpm=n["best"]))
-            ui.message(", ".join(parts))
+            self._show_stats()
             return
         lang = _input_language(obj)
         checker = addon_spellcheck.start_checker(text, lang)
@@ -367,6 +353,18 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         "Checks the spelling of selected text; with nothing selected, fixes the last misspelled word "
         "you typed, or reports your typing statistics when there is none"
     )
+
+    def _show_stats(self):
+        """Opens the statistics report, once, through runScriptModalDialog
+        so the calling script returns at once."""
+        if self._stats_open:
+            return
+        dlg = addon_settings.StatsDialog(gui.mainFrame, addon_settings.stats_text(self._stats.details()))
+        self._stats_open = True
+
+        def closed(result):
+            self._stats_open = False
+        gui.runScriptModalDialog(dlg, closed)
 
     def _next_selection_misspelling(self):
         state = self._selection_check
@@ -879,6 +877,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             return
         if ch not in _CONTROL_CHARS:
             self._stats.key(time.monotonic(), ch, word_ended=bool(buffered))
+        elif buffered and ch in _LINE_ENDS:
+            self._stats.word()
         if not self._enabled:
             return
         try:

@@ -80,13 +80,15 @@ With text selected, it checks the selection word by word and offers suggestions 
 
 With nothing selected, if your last misspelled word is still on the caret's line or the line above, it offers suggestions for that word. Pick one and Typix selects that word, checks it, and replaces it. This works after you've typed more, and after switching windows and coming back.
 
-Otherwise, including in windows with no text, it reads your typing statistics.
+Otherwise, including in windows with no text, it opens your typing statistics.
 
 The suggestions list always opens in front, like NVDA's own dialogs. Each suggestion says what was wrong, like "hello, missing l", "the, e and h swapped" or "help, p instead of o". Suggestions follow the word's case, so Helo suggests Hello. The list also offers Add to dictionary and Skip.
 
 ### Typing statistics
 
-The command reports your current speed, today's average, words and misspellings today, your average over all days, and your best speed.
+Statistics open in a window with a read-only text field and a Close button. Read the field with the arrow keys, and press Escape to close it.
+
+The first line sums things up: your current speed, today's average, words and misspellings today, your average over all days, and your best speed. Below it are sections for today, the last 7 days and all time, each with words, characters typed, characters deleted, misspellings, time spent typing and average speed. The all time section also gives the number of days with typing, your best speed and your busiest day. The last section has one line for each of your 7 most recent days with typing.
 
 Speed is net words per minute, counting five characters as a word, as typing tests do. Characters you deleted with Backspace are taken off, and a key held down to auto-repeat isn't counted. Pauses longer than five seconds don't count as typing time, so the number reads a little higher than a typing test that counts every second. Your best speed only counts stretches of at least 50 keys.
 
