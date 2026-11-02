@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 'typix' '1.0.4'\n"
 "Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
-"POT-Creation-Date: 2026-11-02 20:44+0200\n"
+"POT-Creation-Date: 2026-11-02 20:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -121,25 +121,25 @@ msgstr ""
 
 #. Translators: Spoken when focus doesn't return to the text field after the
 #. suggestions dialog.
-#: globalPlugins/typix/__init__.py:569
+#: globalPlugins/typix/__init__.py:571
 msgid "Could not get back to the text, nothing replaced"
 msgstr ""
 
 #. Translators: Spoken when the misspelled word can't be selected safely for
 #. replacing. {word} is that word.
-#: globalPlugins/typix/__init__.py:574
+#: globalPlugins/typix/__init__.py:576
 #, python-brace-format
 msgid "Could not select {word} safely, nothing replaced"
 msgstr ""
 
 #. Translators: Spoken when the selection changed during the spelling check, so
 #. nothing is corrected.
-#: globalPlugins/typix/__init__.py:679
+#: globalPlugins/typix/__init__.py:681
 msgid "The selection changed, nothing replaced"
 msgstr ""
 
 #. Translators: Spoken after the selection check corrected the words.
-#: globalPlugins/typix/__init__.py:709
+#: globalPlugins/typix/__init__.py:711
 msgid "Corrected"
 msgstr ""
 

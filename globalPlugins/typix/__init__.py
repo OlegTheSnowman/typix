@@ -508,6 +508,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             elif not quiet:
                 ui.message(self._no_way_back())
             return
+        # A browser may have made a new object for the field in the meantime.
+        obj = api.getFocusObject()
         caret = None
         try:
             found = self._find_word(obj, word)
