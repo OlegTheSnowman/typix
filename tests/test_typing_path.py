@@ -339,6 +339,18 @@ class TestWordCount(unittest.TestCase):
         self.plugin._stats.word.assert_called_once()
         self.plugin._stats.key.assert_not_called()
 
+    def test_enter_never_starts_a_replacement(self):
+        self.plugin._capitalize_sentences = True
+        plugin_module.core.callLater.reset_mock(side_effect=True)
+        self.type("\r")
+        plugin_module.core.callLater.assert_not_called()
+
+    def test_space_still_starts_a_replacement(self):
+        self.plugin._capitalize_sentences = True
+        plugin_module.core.callLater.reset_mock(side_effect=True)
+        self.type(" ")
+        plugin_module.core.callLater.assert_called_once()
+
     def test_enter_on_an_empty_line_finishes_nothing(self):
         plugin_module.speech.speech._curWordChars = []
         self.type("\r")

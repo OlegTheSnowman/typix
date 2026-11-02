@@ -751,10 +751,11 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             logger.debug("Typix: gesture hook failed", exc_info=True)
         return True
 
-    def _finished_word(self, obj, buffered):
+    def _finished_word(self, obj, buffered, rules=True):
         """The word that just ended, read from the field: (word, the
-        whitespace chunk around it, its replacement or None). Speaks the
-        word if NVDA's own echo would have got it wrong."""
+        whitespace chunk around it, its replacement or None, always None
+        without rules). Speaks the word if NVDA's own echo would have got
+        it wrong."""
         word = buffered
         token = ""
         replacement = None
@@ -784,7 +785,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                             before = above.text if above is not None else ""
                         # Text replacement rules: expansions first, then
                         # a lone i, then the first word of a sentence.
-                        if word in self._expansions:
+                        if not rules:
+                            pass
+                        elif word in self._expansions:
                             replacement = self._expansions[word]
                         elif self._capitalize_i and word[0] == "i" and word.replace("’", "'") in _I_FORMS:
                             replacement = "I" + word[1:]
@@ -845,7 +848,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         if buffered and not protected and _is_editable(obj):
             word = buffered
             try:
-                word, token, replacement = self._finished_word(obj, buffered)
+                # Enter may have sent the text already, and replacing mutes
+                # speech just as a game or chat answers, so its words stay.
+                word, token, replacement = self._finished_word(obj, buffered, rules=ch not in _NOT_TYPED)
             except Exception:
                 # A field can die while it's read. NVDA must still get the
                 # character, so this falls back to NVDA's own word.
