@@ -35,6 +35,8 @@ Typix never uses the clipboard. It selects through NVDA's text API, reads the se
 
 `_is_own_char` stops Typix reacting to its own typed characters. Enter and Tab are never typed, because Enter sends the message in a chat app. Typed input is queued while selecting takes effect at once, so `_when_landed` waits for the text before the next step.
 
+Never mute NVDA for a swap: `setSpeechMode` drops everything else too, such as the reply from a MUD. NVDA reads selection changes from `event_caret`, through `detectPossibleSelectionChange`, so `event_caret` holds back caret events for that one window during a swap, and `_finish_swap` then brings `_lastSelectionPos` up to date.
+
 Don't position text with Backspace or arrow keys. It broke in rich web editors.
 
 Automatic rules don't run in terminals, where a capital would break commands. In a password field every character key plays the plain letter sound, centred, and nothing is read or replaced.

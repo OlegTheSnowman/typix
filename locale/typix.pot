@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: 'typix' '1.0.2'\n"
+"Project-Id-Version: 'typix' '1.0.3'\n"
 "Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
-"POT-Creation-Date: 2026-11-02 18:38+0200\n"
+"POT-Creation-Date: 2026-11-02 18:47+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,85 +22,85 @@ msgstr ""
 #. Translators: Title of the Typix category in NVDA's settings dialog.
 #. Translators: Summary/title for this add-on, shown on installation and in the
 #. Add-on Store
-#: globalPlugins/typix/__init__.py:177 globalPlugins/typix/__init__.py:231
+#: globalPlugins/typix/__init__.py:180 globalPlugins/typix/__init__.py:235
 #: globalPlugins/typix/settings.py:638 manifest.ini
 msgid "Typix"
 msgstr ""
 
 #. Translators: Item in NVDA menu, Tools, Typix that opens the custom spelling
 #. dictionary.
-#: globalPlugins/typix/__init__.py:228
+#: globalPlugins/typix/__init__.py:232
 msgid "Manage &Dictionary..."
 msgstr ""
 
 #. Translators: Spoken when the toggle command turns typing sounds on.
-#: globalPlugins/typix/__init__.py:305
+#: globalPlugins/typix/__init__.py:310
 msgid "Typix sounds on"
 msgstr ""
 
 #. Translators: Spoken when the toggle command turns typing sounds off.
-#: globalPlugins/typix/__init__.py:308
+#: globalPlugins/typix/__init__.py:313
 msgid "Typix sounds off"
 msgstr ""
 
 #. Translators: Description of the toggle command in NVDA's Input gestures
 #. dialog.
-#: globalPlugins/typix/__init__.py:310
+#: globalPlugins/typix/__init__.py:315
 msgid "Toggles Typix typing sounds on and off"
 msgstr ""
 
 #. Translators: Spoken when the selection spelling check is started while one
 #. is already running.
-#: globalPlugins/typix/__init__.py:315
+#: globalPlugins/typix/__init__.py:320
 msgid "A selection spelling check is already in progress"
 msgstr ""
 
 #. Translators: Spoken when no spelling dictionary is ready yet for the current
 #. keyboard language.
-#: globalPlugins/typix/__init__.py:340
+#: globalPlugins/typix/__init__.py:349
 msgid "Spellcheck dictionary is not available yet, try again in a moment"
 msgstr ""
 
 #. Translators: Description of the spelling command in NVDA's Input gestures
 #. dialog.
-#: globalPlugins/typix/__init__.py:353
+#: globalPlugins/typix/__init__.py:362
 msgid "Checks the spelling of selected text; with nothing selected, fixes the last misspelled word you typed, or reports your typing statistics when there is none"
 msgstr ""
 
 #. Translators: Spoken when the selection spelling check finds no misspelled
 #. words.
-#: globalPlugins/typix/__init__.py:402
+#: globalPlugins/typix/__init__.py:411
 msgid "No spelling errors found"
 msgstr ""
 
 #. Translators: Spoken when the selection spelling check ends without any word
 #. replaced.
-#: globalPlugins/typix/__init__.py:405
+#: globalPlugins/typix/__init__.py:414
 msgid "No changes made"
 msgstr ""
 
 #. Translators: Spoken when corrected text can't be written because the field
 #. is read-only.
-#: globalPlugins/typix/__init__.py:408
+#: globalPlugins/typix/__init__.py:417
 msgid "Cannot replace text, the field is read-only"
 msgstr ""
 
 #. Translators: Choice in the spelling suggestions list. {word} is the
 #. misspelled word.
-#: globalPlugins/typix/__init__.py:423
+#: globalPlugins/typix/__init__.py:432
 #, python-brace-format
 msgid "Add {word} to dictionary"
 msgstr ""
 
 #. Translators: Choice in the spelling suggestions list that leaves the word as
 #. it is.
-#: globalPlugins/typix/__init__.py:425
+#: globalPlugins/typix/__init__.py:434
 msgid "Skip"
 msgstr ""
 
 #. Translators: Message of the spelling suggestions dialog. {word} is the
 #. misspelled word, {count} the number of suggestions.
-#: globalPlugins/typix/__init__.py:429
+#: globalPlugins/typix/__init__.py:438
 #, python-brace-format
 msgid "{word} is misspelled. {count} suggestion."
 msgid_plural "{word} is misspelled. {count} suggestions."
@@ -109,37 +109,37 @@ msgstr[1] ""
 
 #. Translators: Message of the spelling suggestions dialog when there are no
 #. suggestions. {word} is the misspelled word.
-#: globalPlugins/typix/__init__.py:435
+#: globalPlugins/typix/__init__.py:444
 #, python-brace-format
 msgid "{word} is misspelled. No suggestions."
 msgstr ""
 
 #. Translators: Title of the spelling suggestions dialog.
-#: globalPlugins/typix/__init__.py:437
+#: globalPlugins/typix/__init__.py:446
 msgid "Spelling suggestions"
 msgstr ""
 
 #. Translators: Spoken when focus doesn't return to the text field after the
 #. suggestions dialog.
-#: globalPlugins/typix/__init__.py:553
+#: globalPlugins/typix/__init__.py:563
 msgid "Could not get back to the text, nothing replaced"
 msgstr ""
 
 #. Translators: Spoken when the misspelled word can't be selected safely for
 #. replacing. {word} is that word.
-#: globalPlugins/typix/__init__.py:558
+#: globalPlugins/typix/__init__.py:568
 #, python-brace-format
 msgid "Could not select {word} safely, nothing replaced"
 msgstr ""
 
 #. Translators: Spoken when the selection changed during the spelling check, so
 #. nothing is corrected.
-#: globalPlugins/typix/__init__.py:592
+#: globalPlugins/typix/__init__.py:624
 msgid "The selection changed, nothing replaced"
 msgstr ""
 
 #. Translators: Spoken after the selection check corrected the words.
-#: globalPlugins/typix/__init__.py:624
+#: globalPlugins/typix/__init__.py:654
 msgid "Corrected"
 msgstr ""
 

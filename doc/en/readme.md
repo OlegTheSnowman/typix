@@ -42,7 +42,7 @@ Two checkboxes add automatic capitals: one for the first word of a sentence, and
 
 When Typix replaces something, it says the new text if NVDA's Speak typed words is on. It then plays the Automatic replacement sound, or a short beep if the pack has none.
 
-To make the change, Typix selects the word, checks that it really is that word, and types the new text over it with NVDA muted for a moment. If Typix can't select the word safely, the text stays as it was. Ctrl+Z in the app undoes a replacement you didn't want, though some apps need more than one press.
+To make the change, Typix selects the word, checks that it really is that word, and types the new text over it. NVDA doesn't read out the selection, and anything else it has to say comes through as usual. If Typix can't select the word safely, the text stays as it was. Ctrl+Z in the app undoes a replacement you didn't want, though some apps need more than one press.
 
 Typix never uses the clipboard. A typed Enter or Tab could send a message in a chat app, so a word you end with Enter or Tab isn't replaced or capitalized.
 

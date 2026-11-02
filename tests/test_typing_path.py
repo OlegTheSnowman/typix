@@ -26,6 +26,10 @@ class FakeInfo:
     def copy(self):
         return FakeInfo(self.field, self.start, self.end)
 
+    @property
+    def isCollapsed(self):
+        return self.start == self.end
+
     def updateSelection(self):
         self.field.selection = (self.start, self.end)
 
@@ -98,6 +102,7 @@ class FakeInfo:
 class FakeField:
     role = "edit"
     windowHandle = 1
+    detectPossibleSelectionChange = None  # present on fields NVDA watches for selection
 
     def __init__(self, text, selection=None):
         self.text = text
@@ -125,7 +130,7 @@ def load_plugin():
     """Imports __init__.py with NVDA's modules stubbed out."""
     nvda = {name: mock.MagicMock() for name in (
         "globalPluginHandler", "globalVars", "api", "controlTypes", "gui", "addonHandler", "inputCore",
-        "keyboardHandler", "ui", "winUser", "languageHandler", "core", "config", "config.configFlags",
+        "keyboardHandler", "ui", "winUser", "languageHandler", "core", "config", "config.configFlags", "eventHandler",
         "speech", "tones", "textInfos", "wx", "characterProcessing", "nvwave", "gui.guiHelper",
         "gui.nvdaControls", "winBindings", "winBindings.user32",
     )}
@@ -192,6 +197,9 @@ class TestReplace(unittest.TestCase):
         self.plugin._own_chars = plugin_module.deque()
         self.plugin._own_deadline = 0.0
         self.plugin._last_misspelling = None
+        self.plugin._hush = None
+        plugin_module.speech.setSpeechMode.reset_mock()
+        plugin_module.eventHandler.queueEvent.reset_mock()
         self.send_input = plugin_module.winUser.SendInput
         self.send_input.reset_mock(side_effect=True)
         plugin_module.keyboardHandler.shouldUseToUnicodeEx.return_value = False
@@ -289,6 +297,43 @@ class TestReplace(unittest.TestCase):
         self.assertEqual(self.field.text, "hello ok")
         self.assertIn("safely", self.message())
 
+    def test_replacing_never_mutes_nvda(self):
+        self.replace("this ")
+        self.replace("teh\r\nmore", "teh", "the", quiet=False)
+        self.check_selection("helo ok", [(0, "helo", "hello")])
+        plugin_module.speech.setSpeechMode.assert_not_called()
+
+    def test_nvda_is_told_the_selection_before_the_hold_ends(self):
+        self.replace("this ")
+        self.assertIsNone(self.plugin._hush)
+        self.assertEqual(self.field._lastSelectionPos.start, 5)
+        self.assertFalse(self.field.hasContentChangedSinceLastSelection)
+        plugin_module.eventHandler.queueEvent.assert_called_with("caret", self.field)
+
+    def test_a_failed_replace_ends_the_hold(self):
+        self.use("this ")
+        self.send_input.side_effect = OSError
+        self.plugin._replace(self.field, "this", "This", 0, True)
+        self.assertIsNone(self.plugin._hush)
+
+    def test_caret_events_held_for_the_field_only_and_not_for_long(self):
+        self.use("this ")
+        hold = plugin_module.time.monotonic() + 1
+        self.plugin._hush = (self.field, hold)
+        held = mock.MagicMock()
+        self.plugin.event_caret(self.field, held)
+        held.assert_not_called()
+        other = FakeField("x")
+        other.windowHandle = 2
+        passed = mock.MagicMock()
+        self.plugin.event_caret(other, passed)
+        passed.assert_called_once()
+        self.plugin._hush = (self.field, 0.0)
+        late = mock.MagicMock()
+        self.plugin.event_caret(self.field, late)
+        late.assert_called_once()
+        self.assertIsNone(self.plugin._hush)
+
     def test_own_characters_are_swallowed_once_each(self):
         self.replace("this ")
         for ch in "This ":
@@ -311,6 +356,37 @@ class TestReplace(unittest.TestCase):
         self.replace("this ")
         self.assertEqual(self.field.text, "This ")
         self.assertFalse(self.plugin._own_chars)
+
+
+class TestSpellingCommand(unittest.TestCase):
+    def setUp(self):
+        self.plugin = plugin_module.GlobalPlugin.__new__(plugin_module.GlobalPlugin)
+        self.plugin._selection_check = None
+        self.plugin._last_misspelling = SimpleNamespace(word="teh", lang="en_US")
+        self.plugin._suggest = mock.MagicMock()
+        self.plugin._show_stats = mock.MagicMock()
+        self.field = FakeField("teh ")
+        plugin_module.api.getFocusObject.return_value = self.field
+
+    def press(self):
+        self.plugin.script_checkSelectionSpelling(None)
+
+    def finish_dialog(self, choice, cancelled):
+        self.plugin._suggest.call_args[0][2](choice, cancelled)
+
+    def test_add_to_dictionary_or_skip_does_not_offer_the_word_again(self):
+        self.press()
+        self.finish_dialog(None, False)
+        self.press()
+        self.plugin._suggest.assert_called_once()
+        self.plugin._show_stats.assert_called_once()
+
+    def test_escape_keeps_the_word_for_another_try(self):
+        self.press()
+        self.finish_dialog(None, True)
+        self.press()
+        self.assertEqual(self.plugin._suggest.call_count, 2)
+        self.plugin._show_stats.assert_not_called()
 
 
 class TestWordCount(unittest.TestCase):

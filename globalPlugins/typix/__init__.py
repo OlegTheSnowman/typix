@@ -23,6 +23,7 @@ import winUser
 import languageHandler
 import core
 import config as nvda_config
+import eventHandler
 import speech
 import tones
 import textInfos
@@ -73,6 +74,8 @@ _TYPED_WORDS_OFF = TypingEcho.OFF.value
 _NOT_TYPED = "\r\n\t"
 # How long, in seconds, characters Typix typed are expected back.
 _OWN_CHARS_TIMEOUT = 2.0
+# Longest a field's caret events are held back during a swap, in seconds.
+_HUSH_TIMEOUT = 1.5
 
 # "i" on its own and its contractions, for the capital I rule.
 _I_FORMS = {"i", "i'm", "i'll", "i've", "i'd"}
@@ -210,6 +213,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         self._last_misspelling = None    # word and language for the fix command
         self._apostrophe_word = None     # NVDA's word held back at an apostrophe
         self._stats_open = False         # the statistics dialog is showing
+        self._hush = None                # field whose selection changes NVDA must not read, and until when
         self._own_chars = deque()        # characters Typix typed, on their way back
         self._own_deadline = 0.0         # when to stop expecting them
         # Typing statistics, kept across sessions; counts only, never text.
@@ -237,6 +241,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
     def terminate(self):
         self._terminated = True
+        self._hush = None
         try:
             inputCore.decide_executeGesture.unregister(self._on_gesture)
             nvda_config.post_configProfileSwitch.unregister(self.update_settings)
@@ -325,10 +330,14 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             # no text at all, report typing statistics.
             last = self._last_misspelling
             if last is not None and self._find_word(obj, last.word) is not None:
-                self._suggest(
-                    last.word, last.lang,
-                    lambda choice, cancelled: choice and self._replace(obj, last.word, choice),
-                )
+                def chosen(choice, cancelled):
+                    # Added or skipped, the word is dealt with: without this
+                    # the command would offer it again. Escape can try again.
+                    if not cancelled:
+                        self._last_misspelling = None
+                    if choice:
+                        self._replace(obj, last.word, choice)
+                self._suggest(last.word, last.lang, chosen)
                 return
             self._last_misspelling = None
             self._show_stats()
@@ -479,9 +488,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         chat app. With one in that stretch, text replacement rules (quiet)
         leave the word alone, and a fix asked for by command types only the
         word and moves the caret back afterwards. The clipboard is never
-        used. Speech is muted for the swap, so NVDA doesn't read out the
-        selection. Afterwards it says the new text, or with quiet (already
-        spoken) plays the replaced sound."""
+        used. NVDA isn't muted: only the field's caret events are held back
+        for the swap, so nothing else stops being spoken. Afterwards it says
+        the new text, or with quiet (already spoken) plays the replaced
+        sound."""
         if self._terminated:
             return
         if not _same_window(api.getFocusObject(), obj):
@@ -490,8 +500,6 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             elif not quiet:
                 ui.message(self._no_way_back())
             return
-        mode = speech.getState().speechMode
-        speech.setSpeechMode(speech.SpeechMode.off)
         caret = None
         try:
             found = self._find_word(obj, word)
@@ -502,7 +510,6 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             tail = expected[len(word):]
             separated = any(c in tail + text for c in _NOT_TYPED)
             if separated and quiet:
-                self._unmute(mode)
                 return
             if not expected.startswith(word):
                 raise LookupError("the word is not where it was found")
@@ -510,6 +517,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 after = found.copy()
                 after.collapse(end=True)
                 back_by = _distance(after, caret, len(tail) + 1)
+                self._hold_selection_speech(obj)
                 found.updateSelection()
                 if obj.makeTextInfo(textInfos.POSITION_SELECTION).text != word:
                     raise LookupError("selection read back differently")
@@ -524,9 +532,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                     except Exception:
                         logger.debug("Typix: could not put the caret back", exc_info=True)
                     self._last_misspelling = None
-                    self._unmute(mode, text)
+                    self._finish_swap(obj, text)
                 self._when_landed(obj, text, landed)
                 return
+            self._hold_selection_speech(obj)
             span.updateSelection()
             if obj.makeTextInfo(textInfos.POSITION_SELECTION).text != expected:
                 raise LookupError("selection read back differently")
@@ -538,14 +547,15 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 caret.updateCaret()
             except Exception:
                 pass
-            self._unmute(mode, None if quiet else self._unsafe(word))
+            self._finish_swap(obj, None if quiet else self._unsafe(word))
             return
         if quiet:
             self._alert("REPLACED", 660)
-            self._unmute(mode)
         else:
             self._last_misspelling = None
-            self._unmute(mode, text)
+        # Not by the text before the caret: a fast typist's next key is
+        # already there.
+        self._when_landed(obj, None, lambda ok: self._finish_swap(obj, None if quiet else text))
 
     @staticmethod
     def _no_way_back():
@@ -557,16 +567,38 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         # Translators: Spoken when the misspelled word can't be selected safely for replacing. {word} is that word.
         return _("Could not select {word} safely, nothing replaced").format(word=word)
 
-    @staticmethod
-    def _unmute(mode, message=None):
-        """Brings speech back and says message, after a moment for the app
-        to report its change."""
-        def unmute():
-            if speech.getState().speechMode == speech.SpeechMode.off:
-                speech.setSpeechMode(mode)
-            if message:
-                ui.message(message)
-        core.callLater(150, unmute)
+    def _hold_selection_speech(self, obj):
+        """Stops NVDA reading out the selection Typix is about to make in
+        obj. NVDA reads selection changes from caret events, so holding back
+        only those, only for this field, leaves all other speech alone."""
+        self._hush = (obj, time.monotonic() + _HUSH_TIMEOUT)
+
+    def _finish_swap(self, obj, message=None):
+        """Ends the hold, with NVDA's idea of the selection brought up to
+        date so the caret events still to come say nothing, and lets braille
+        and the review cursor catch up."""
+        try:
+            if hasattr(obj, "detectPossibleSelectionChange"):
+                obj._lastSelectionPos = obj.makeTextInfo(textInfos.POSITION_SELECTION)
+                obj.hasContentChangedSinceLastSelection = False
+        except Exception:
+            logger.debug("Typix: could not update NVDA's selection", exc_info=True)
+        self._hush = None
+        try:
+            eventHandler.queueEvent("caret", obj)
+        except Exception:
+            logger.debug("Typix: could not queue a caret event", exc_info=True)
+        if message:
+            ui.message(message)
+
+    def event_caret(self, obj, nextHandler):
+        hush = self._hush
+        if hush:
+            if time.monotonic() > hush[1]:
+                self._hush = None
+            elif _same_window(obj, hush[0]):
+                return
+        nextHandler()
 
     def _apply_selection_fixes(self, state, tries=40):
         """Corrects the selection check's words one at a time, each selected
@@ -591,8 +623,6 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             # Translators: Spoken when the selection changed during the spelling check, so nothing is corrected.
             ui.message(_("The selection changed, nothing replaced"))
             return
-        mode = speech.getState().speechMode
-        speech.setSpeechMode(speech.SpeechMode.off)
         start = selection.copy()
         start.collapse()
         pos, word, _choice = state.fixes[-1]
@@ -604,11 +634,11 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             tail = _distance(mark, end, len(state.original) + 1)
         except Exception:
             logger.debug("Typix: could not measure the selection", exc_info=True)
-            self._unmute(mode, self._unsafe(word))
+            ui.message(self._unsafe(word))
             return
-        self._next_fix(focus, state, start, 0, 0, tail, mode)
+        self._next_fix(focus, state, start, 0, 0, tail)
 
-    def _next_fix(self, obj, state, start, index, shift, tail, mode):
+    def _next_fix(self, obj, state, start, index, shift, tail):
         """Applies fix number index. shift is how far earlier fixes moved
         it, and tail the characters from the last word to the selection's
         end, for the caret at the finish."""
@@ -621,11 +651,12 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             except Exception:
                 logger.debug("Typix: could not put the caret back", exc_info=True)
             # Translators: Spoken after the selection check corrected the words.
-            self._unmute(mode, _("Corrected"))
+            self._finish_swap(obj, _("Corrected"))
             return
         pos, word, choice = state.fixes[index]
         try:
             found = self._range_at(start, state.original, pos, shift, word)
+            self._hold_selection_speech(obj)
             found.updateSelection()
             if obj.makeTextInfo(textInfos.POSITION_SELECTION).text != word:
                 raise LookupError("selection read back differently")
@@ -636,14 +667,14 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 start.updateCaret()
             except Exception:
                 pass
-            self._unmute(mode, self._unsafe(word))
+            self._finish_swap(obj, self._unsafe(word))
             return
 
         def landed(ok):
             if ok:
-                self._next_fix(obj, state, start, index + 1, shift + len(choice) - len(word), tail, mode)
+                self._next_fix(obj, state, start, index + 1, shift + len(choice) - len(word), tail)
             else:
-                self._unmute(mode, self._unsafe(word))
+                self._finish_swap(obj, self._unsafe(word))
         self._when_landed(obj, choice, landed)
 
     @staticmethod
@@ -665,11 +696,15 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         """Calls then(True) once text, just typed, is in the field before the
         caret, or then(False) after about a second. Typed input is queued
         while selecting takes effect at once, so moving on too soon would
-        put the text in the wrong place."""
+        put the text in the wrong place. With text None, it only waits for
+        the selection to be replaced."""
         try:
-            info = obj.makeTextInfo(textInfos.POSITION_CARET)
-            info.move(textInfos.UNIT_CHARACTER, -len(text), endPoint="start")
-            landed = info.text == text
+            if text is None:
+                landed = obj.makeTextInfo(textInfos.POSITION_SELECTION).isCollapsed
+            else:
+                info = obj.makeTextInfo(textInfos.POSITION_CARET)
+                info.move(textInfos.UNIT_CHARACTER, -len(text), endPoint="start")
+                landed = info.text == text
         except Exception:
             landed = False
         if landed or not tries:
