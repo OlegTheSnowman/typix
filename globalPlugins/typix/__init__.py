@@ -84,12 +84,16 @@ _IDLE_BEFORE_REPLACE = 0.35
 # Keys pressed during an automatic replacement are held at most this long.
 _KEY_HOLD_TIMEOUT = 2.0
 # After this long without a key, keys that never arrived are forgotten.
-_IN_FLIGHT_FORGET = 1.0
+# Shortcuts and NVDA commands never arrive as characters, so a stale count
+# made every replacement wait this long after the pause.
+_IN_FLIGHT_FORGET = 0.5
 # Words further than this from the caret are left alone.
 _CARET_LIMIT = 2000
 # Unicode input, as Typix types it; never held.
 _VK_PACKET = 0xE7
 _ALT_KEYS = {0x12, 0xA4, 0xA5}
+# Ctrl and Windows: a letter pressed with them is a shortcut, not a character.
+_CHORD_KEYS = {0x11, 0xA2, 0xA3, 0x5B, 0x5C}
 _MODIFIER_KEYS = (0x10, 0x11, 0x12, 0x5B, 0x5C)  # Shift, Ctrl, Alt, both Windows keys
 # Keys that normally produce a typed character: Backspace, Enter, space,
 # digits, letters, numpad and punctuation.
@@ -699,6 +703,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         self._keys_sent = 0              # character keys let through the hook
         self._keys_arrived = 0           # characters that reached event_typedCharacter
         self._alt_down = False
+        self._chord_down = set()          # Ctrl and Windows keys held
 
     def _queue_auto_replace(self, obj, word, replacement, prefix):
         if any(c in replacement for c in _NOT_TYPED):
@@ -853,13 +858,18 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 return True
             if vkCode in _ALT_KEYS:
                 self._alt_down = pressed
+            elif vkCode in _CHORD_KEYS:
+                if pressed:
+                    self._chord_down.add(vkCode)
+                else:
+                    self._chord_down.discard(vkCode)
             with self._key_lock:
                 if pressed:
                     self._last_key_time = time.monotonic()
                 if self._holding:
                     self._held_keys.append((vkCode, scanCode, extended, pressed))
                     return False
-                if pressed and vkCode in _CHARACTER_KEYS and not self._alt_down:
+                if pressed and vkCode in _CHARACTER_KEYS and not self._alt_down and not self._chord_down:
                     self._keys_sent += 1
             return True
         except Exception:

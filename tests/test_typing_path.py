@@ -625,10 +625,19 @@ class TestAutoReplace(unittest.TestCase):
         # Once replayed, keys pass straight through again.
         self.assertTrue(self.plugin._on_raw_key(vkCode=0x41, scanCode=30, extended=False, pressed=True))
 
+    def test_a_shortcut_is_not_a_key_on_its_way(self):
+        # Ctrl+S never arrives as a character; counting it made every later
+        # replacement wait for the stale count to expire.
+        self.plugin._on_raw_key(vkCode=0xA2, scanCode=29, pressed=True)
+        self.plugin._on_raw_key(vkCode=0x53, scanCode=31, pressed=True)
+        self.plugin._on_raw_key(vkCode=0x53, scanCode=31, pressed=False)
+        self.plugin._on_raw_key(vkCode=0xA2, scanCode=29, pressed=False)
+        self.assertEqual(self.plugin._keys_in_flight(), 0)
+
     def test_waits_for_keys_already_let_through(self):
         self.use("this ")
         self.plugin._on_raw_key(vkCode=0x41, scanCode=30, pressed=True)
-        self.plugin._last_key_time -= 0.5  # pressed a while ago, still not arrived
+        self.plugin._last_key_time -= 0.4  # pressed a while ago, still not arrived
         self.queue("this", "This", "")
         self.step()
         self.step()
