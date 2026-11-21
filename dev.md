@@ -56,3 +56,7 @@ Controls inside a `_group` box must use the box as their parent. Mixed parents s
 `python tools/dev_install.py` copies the current code into the installed Typix and adds a small reloader next to it. Press NVDA+Ctrl+F3 once. After that, saving a .py file under `globalPlugins/typix` copies it over and reloads NVDA's plugins, and NVDA says "Typix reloaded". A syntax error isn't copied; NVDA says the file and line instead. Only .py files are copied, so rebuild and reinstall after changing sounds, libraries or translations.
 
 The reloader lives only in your NVDA configuration, never in the repository's package. `python tools/dev_install.py --remove` takes it out, and installing any Typix package replaces it.
+
+## Releasing
+
+build.bat raises the patch version before it builds, so set manifest.ini one below the version you want. Create the GitHub release with the package, then run `python tools/submit_store.py`. It checks the released package and opens the store's submission form filled in; press Create. The form is the only way in: the store's workflow runs only for issues it labels itself.
