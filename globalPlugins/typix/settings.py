@@ -221,9 +221,10 @@ class PackEditorDialog(wx.Dialog):
     """Edits a sound pack's details, category sounds and per-character
     sounds and effects. Nothing touches the disk until OK."""
 
-    def __init__(self, parent, loader, dir_name):
+    def __init__(self, parent, loader, dir_name, name=None):
         pack = loader.available_packs.get(dir_name)
-        name = pack.name if pack else dir_name
+        # A new pack has no sounds yet, so it isn't loaded: use the name typed.
+        name = pack.name if pack else (name or dir_name)
         super().__init__(
             # Translators: Title of the sound pack editor. {name} is the pack name.
             parent, title=_("Edit sound pack {name}").format(name=name),
@@ -806,8 +807,8 @@ class TypixSettingsPanel(gui.settingsDialogs.SettingsPanel):
         if path:
             _play(path)
 
-    def _edit(self, key):
-        if self._show(PackEditorDialog(self, self._loader, key)) == wx.ID_OK:
+    def _edit(self, key, name=None):
+        if self._show(PackEditorDialog(self, self._loader, key, name)) == wx.ID_OK:
             _get_plugin().audio_engine.clear_cache()
         self._refresh_packs(key)
 
@@ -837,7 +838,12 @@ class TypixSettingsPanel(gui.settingsDialogs.SettingsPanel):
             )
             return
         self._loader.scan_packs()
-        self._edit(key)
+        self._edit(key, name)
+        if key not in self._loader.available_packs:
+            # Cancelled, or saved without sounds. The empty folder would
+            # never show in the list but would block the name.
+            self._loader.delete_pack(key)
+            self._refresh_packs(None)
 
     def _on_open_folder(self, event):
         os.startfile(self._loader.soundpacks_root)

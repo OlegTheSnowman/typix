@@ -256,7 +256,12 @@ class SoundPackLoader:
             "name": name or old.get("name") or dir_name,
             "author": author,
             "description": description,
-            "files": build(sounds, str.lower),
+            # Keys Typix doesn't know, maybe from a newer version, are kept
+            # with their files.
+            "files": {
+                **{k: v for k, v in (old.get("files") or {}).items() if k not in CATEGORIES},
+                **build(sounds, str.lower),
+            },
             "char_sounds": build(char_sounds, lambda c: f"char_{ord(c[0]):04x}"),
             "char_panning": {c: v for c, v in char_panning.items() if abs(v) >= 0.005},
             "char_pitch": {c: v for c, v in char_pitch.items() if abs(v) >= 0.05},
