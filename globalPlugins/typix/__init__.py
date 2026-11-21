@@ -101,10 +101,27 @@ def _nvda_word_chars():
     return getattr(speech.speech, "_curWordChars", None)
 
 
-def _input_language(obj):
-    """Locale name of the keyboard layout active in obj's thread."""
+def _keyboard_thread(obj):
+    """The thread that really has keyboard focus. In WebView2 apps such as
+    WhatsApp, the window NVDA reports for the field can belong to another
+    thread than the one the keys go to, and that thread keeps the default
+    layout while the user types in another language. Falls back to obj's
+    own thread."""
     try:
-        lcid = winUser.getKeyboardLayout(obj.windowThreadID) & 0xFFFF
+        info = winUser.getGUIThreadInfo(0)
+        if info.hwndFocus:
+            thread = winUser.getWindowThreadProcessID(info.hwndFocus)[1]
+            if thread:
+                return thread
+    except Exception:
+        logger.debug("Typix: could not find the keyboard focus thread", exc_info=True)
+    return obj.windowThreadID
+
+
+def _input_language(obj):
+    """Locale name of the keyboard layout the user is typing with."""
+    try:
+        lcid = winUser.getKeyboardLayout(_keyboard_thread(obj)) & 0xFFFF
         return languageHandler.windowsLCIDToLocaleName(lcid)
     except Exception:
         return None
