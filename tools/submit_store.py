@@ -8,7 +8,8 @@ Run after the GitHub release exists:  python tools/submit_store.py
 It reads the version, author and repository link from manifest.ini, downloads
 the released package and checks that the version inside it matches, checks
 that this version hasn't been submitted already, and opens the form in the
-default browser. You then press Create. It can't press Create for you: the
+default browser. You then set Channel to stable, which GitHub can't fill
+in from a link, and press Create. It can't press Create for you: the
 store's workflow only runs for issues made through the web form, which carry
 the autoSubmissionFromIssue label.
 
@@ -87,7 +88,8 @@ def main():
         "license-url": LICENSE_URL,
     })
     webbrowser.open("https://github.com/%s/issues/new?%s" % (DATASTORE, query))
-    print("Opened the form for %s %s. Check it and press Create." % (name, version))
+    # GitHub fills in text fields from the link but not drop-down lists.
+    print("Opened the form for %s %s. Set Channel to stable, then press Create." % (name, version))
 
 
 if __name__ == "__main__":

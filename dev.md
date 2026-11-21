@@ -59,4 +59,4 @@ The reloader lives only in your NVDA configuration, never in the repository's pa
 
 ## Releasing
 
-build.bat raises the patch version before it builds, so set manifest.ini one below the version you want. Create the GitHub release with the package, then run `python tools/submit_store.py`. It checks the released package and opens the store's submission form filled in; press Create. The form is the only way in: the store's workflow runs only for issues it labels itself.
+build.bat raises the patch version before it builds, so set manifest.ini one below the version you want. Create the GitHub release with the package, then run `python tools/submit_store.py`. It checks the released package and opens the store's submission form filled in; set Channel to stable and press Create. The form is the only way in: the store's workflow runs only for issues it labels itself.
