@@ -8,23 +8,25 @@ Typix needs NVDA 2026.1 or later. It comes with a few mechanical keyboard packs,
 
 To open the settings, press NVDA+N, then choose Preferences, Settings, and the Typix category.
 
-Play typing sounds turns all typing sounds on or off.
+Play typing sounds turns the key sounds on or off. The misspelling and replacement sounds don't follow it; to silence them, uncheck them under Play sounds for.
+
+Every Typix setting follows NVDA's configuration profiles, so each profile can have its own.
 
 ### Sounds
 
 * Volume: how loud typing sounds are.
 * Stereo panning per key: lets each key sit left or right, as the pack or your rules say. When this is off, every sound plays in the centre.
-* Panning width: how far left and right sounds can go, from 0 for centre only to 100 for full stereo.
-* Key repeat filter: ignores the same key again within this many milliseconds, so holding a key down doesn't flood you with clicks. 0 turns the filter off.
-* Play sounds for: a checklist of the sound categories. Uncheck a category to silence it. If you uncheck capital letters, capitals still play the normal letter sound and only the extra caps sound goes.
+* Panning width: how far left and right sounds can go, from 0 for centre only to 100 for full stereo. The default is 80.
+* Key repeat filter: ignores the same key again within this many milliseconds, so holding a key down doesn't flood you with clicks. It goes from 0 to 200 and is 30 by default; 0 turns the filter off.
+* Play sounds for: a checklist of the sound categories. Uncheck a category to silence it. If you uncheck capital letters, capitals still play the normal letter sound and only the extra caps sound goes. If you uncheck letters but keep capital letters, capitals play only the caps sound. A category the pack has no sound for borrows the letter sound, as the table under Pack editor shows, and it still does with letters unchecked. Unchecking Misspelled word only silences its sound: misspellings are still counted, and the spelling command still offers them.
 
 ### Sound pack
 
 * Sound pack: the pack in use. Each entry reads as name, author and description.
-* Preview sound and Play: hear any sound in the selected pack.
+* Preview sound and Play: hear each category sound in the selected pack. Sounds for single characters play from the pack editor.
 * Edit pack: opens the pack editor.
-* New pack: asks for a name, then opens the editor on an empty pack.
-* Import pack and Export pack: install a pack from a zip file, or save a pack as a zip to share.
+* New pack: asks for a name, then opens the editor on an empty pack. If you cancel, or press OK without adding any sound, the pack isn't kept.
+* Import pack and Export pack: install a pack from a zip file, or save a pack as a zip to share. If a pack with the same name is already installed, Import asks before replacing it.
 * Delete pack: removes the pack for good. A bundled pack you delete stays deleted.
 * Open packs folder: opens the folder in File Explorer. Packs live in your NVDA configuration folder under typix_packs, so they survive add-on updates.
 
@@ -34,19 +36,19 @@ A rule sets the pan and pitch of one character for every pack. Add rule asks for
 
 ### Text replacements
 
-A replacement turns a shortcut word into text as you type. Add a replacement from myemail to your email address, and when you finish myemail with a space, punctuation or Enter, Typix puts your address there. A shortcut must be one word. Edit replacement and Remove replacement change or drop the selected one.
+A replacement turns a shortcut word into text as you type. Add a replacement from myemail to your email address, and when you finish myemail with a space or punctuation, Typix puts your address there. A shortcut must be one word of letters and digits, and case matters, so MyEmail doesn't trigger myemail. Shortcuts are never spellchecked. Edit replacement and Remove replacement change or drop the selected one.
 
-Typix makes the replacement when you pause typing, so it can happen a word or two after the shortcut. Keys you press while it swaps the text are held and typed right after, so nothing is lost.
+Typix makes the replacement when you pause typing, so it can happen a word or two after the shortcut. Keys you press while it swaps the text are held and typed right after, so nothing is lost. If you press Enter or Tab before that pause, replacements still waiting are dropped, because the text may already have been sent.
 
-Replacements don't run in terminals, where they could break commands. Spelling beeps and the spelling command still work there.
+Replacements don't run in terminals, where they could break commands. Spelling beeps and the spelling command still work there, with the limits described under Spelling.
 
-When Typix replaces something, it says the new text if NVDA's Speak typed words is on. It then plays the Automatic replacement sound, or a short beep if the pack has none.
+Once the new text is in place, Typix says it if NVDA's Speak typed words is on. It then plays the Automatic replacement sound, or a short beep if the pack has none.
 
 To make the change, Typix selects the word, checks that it really is that word, and types the new text over it. NVDA doesn't read out the selection, and anything else it has to say comes through as usual. If Typix can't select the word safely, the text stays as it was. Ctrl+Z in the app undoes a replacement you didn't want, though some apps need more than one press.
 
 Typix never uses the clipboard. A typed Enter or Tab could send a message in a chat app, so a word you end with Enter or Tab isn't replaced.
 
-Replacements are saved in NVDA's configuration, so a configuration profile can have its own set, and Typix follows the profile when NVDA switches to it.
+Replacements are saved in NVDA's configuration like every Typix setting, so a configuration profile can have its own set, and Typix follows the profile when NVDA switches to it.
 
 ### Spelling
 
@@ -54,9 +56,11 @@ Beep on misspelled words as you type checks each word you finish against a dicti
 
 Typix doesn't check single letters, words containing digits, links, email addresses, file names, code like snake_case or camelCase, or password fields.
 
+In a terminal Typix can't read the text, so it checks what NVDA collected as you typed. A word you corrected with Backspace is checked only from the part typed after the correction, and pieces of links, paths and code can beep.
+
 The first time you use a language, Typix downloads its dictionary from LibreOffice's dictionaries on GitHub. This is the only time Typix goes online, and what you type is never sent anywhere.
 
-Custom dictionary lists the words you've marked as correct. Add word asks for a word and its language, like en_US, and Remove word takes the selected word out. You can also open it from the NVDA menu, under Tools, Typix.
+Custom dictionary lists the words you've marked as correct. Add word asks for a word and its language, like en_US, and Remove word takes the selected word out. You can also open it from the NVDA menu, under Tools, Typix, Manage Dictionary. The words are saved as plain text in typix_custom_dictionary.json, in the spellcheck_dictionaries folder of your NVDA configuration folder.
 
 ### Whole word echo
 
@@ -66,7 +70,7 @@ This has no setting of its own. It follows NVDA's Speak typed words option, and 
 
 ### Password fields
 
-In a password field every character key plays the same plain letter sound, centred, with no pitch change, so nobody listening, and no recording, can tell which character you typed. Backspace, Delete, Enter and Tab keep their own sounds. Passwords are never spellchecked or replaced.
+In a password field every character key plays the same plain letter sound, centred, with no pitch change, so nobody listening, and no recording, can tell which character you typed. Backspace, Delete, Enter and Tab keep their own sounds. Passwords are never spellchecked or replaced. Keys typed there still count in your typing statistics, as numbers only.
 
 ## Commands
 
@@ -96,7 +100,7 @@ Statistics are kept from day to day in typix_stats.json in your NVDA configurati
 
 ## Pack editor
 
-The editor changes nothing on disk until you press OK.
+The editor changes nothing on disk until you press OK. A new pack is the one exception: its folder is made when you name it, and removed again if you cancel.
 
 ### Details
 
@@ -138,7 +142,7 @@ Sound files you add are copied into the pack folder. Files the pack no longer us
 
 ## Pack format
 
-A pack is a folder with a manifest.json and some WAV files. Typix reads 8, 16, 24 and 32 bit WAV files at any sample rate, mono or stereo.
+A pack is a folder with a manifest.json and some WAV files. Typix reads WAV files with 8, 16, 24 or 32 bit integer samples, or 32 or 64 bit float samples, at any sample rate, mono or stereo.
 
 ```json
 {
@@ -167,7 +171,7 @@ A pack is a folder with a manifest.json and some WAV files. Typix reads 8, 16, 2
 * Every field is optional. A missing category borrows a sound as the table above says.
 * A file name or a list of file names works anywhere a sound goes. Sound files must be inside the pack folder.
 * char_panning runs from -1.0, full left, to 1.0, full right. char_pitch is in semitones, from -24 to 24.
-* Unknown fields are kept and ignored.
+* Fields Typix doesn't know, also inside files, are kept and ignored, and so are their sound files.
 * A pack zip can hold the pack in one folder, or have manifest.json at its root, in which case the pack is named after the zip.
 
 ## Troubleshooting

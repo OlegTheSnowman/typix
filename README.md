@@ -24,7 +24,7 @@ Read the full help in [English](doc/en/readme.md) or [Ukrainian](doc/uk/readme.m
 
 ## Privacy
 
-Typix goes online only to download a spelling dictionary from LibreOffice's dictionaries on GitHub, the first time you use a language. What you type is never sent anywhere. Typing statistics are counts only, saved in your NVDA configuration folder.
+Typix goes online only to download a spelling dictionary from LibreOffice's dictionaries on GitHub, the first time you use a language. What you type is never sent anywhere. Typing statistics are counts only, saved in your NVDA configuration folder. Words you add to the custom dictionary are saved there as plain text.
 
 ## Translate
 
