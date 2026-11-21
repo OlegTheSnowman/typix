@@ -186,5 +186,45 @@ class TestSoundLoader(unittest.TestCase):
         self.assertIsNone(self.loader.create_pack("!!!"))
 
 
+class TestUnknownFilesKeys(unittest.TestCase):
+    # Saving in the editor used to drop file keys from a newer Typix and
+    # delete their sounds.
+    def setUp(self):
+        self.root = tempfile.mkdtemp()
+        self.loader = SoundPackLoader(self.root)
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def test_unknown_key_and_its_file_survive_a_save(self):
+        path = make_pack(self.root, "p", {"letter.wav": 10, "future.wav": 10},
+                         {"files": {"LETTER": "letter.wav", "FUTURE": "future.wav"}})
+        self.loader.scan_packs()
+        pack = self.loader.available_packs["p"]
+        errors = self.loader.save_pack("p", "p", "", "", pack.sounds, {}, {}, {})
+        self.assertEqual(errors, [])
+        self.assertEqual(read_manifest(path)["files"]["FUTURE"], "future.wav")
+        self.assertTrue(os.path.isfile(os.path.join(path, "future.wav")))
+
+
+class TestBundledPacks(unittest.TestCase):
+    # A broken bundled manifest would hide a pack from every user.
+    def test_every_bundled_pack_loads_and_uses_its_files(self):
+        root = os.path.join(_addon.ADDON, "soundpacks")
+        loader = SoundPackLoader(root)
+        for name in os.listdir(root):
+            path = os.path.join(root, name)
+            with self.subTest(pack=name):
+                self.assertIsNotNone(loader.load_pack(path))
+                manifest = read_manifest(path)
+                used = set()
+                for section in ("files", "char_sounds"):
+                    for value in manifest.get(section, {}).values():
+                        used.update([value] if isinstance(value, str) else value)
+                wavs = {f for f in os.listdir(path) if f.endswith(".wav")}
+                self.assertEqual(wavs - used, set(), "sound files the manifest never uses")
+                self.assertTrue(manifest.get("name", "").isascii())
+
+
 if __name__ == "__main__":
     unittest.main()

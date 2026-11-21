@@ -2,7 +2,7 @@
     "name": "Blue Switches",
     "author": "OlegTheSnowman",
     "version": "1.0",
-    "description": "",
+    "description": "Mechanical keyboard with blue switches.",
     "files": {
         "CAPS_LETTER": "caps_letter.wav",
         "SPACE": "space.wav",

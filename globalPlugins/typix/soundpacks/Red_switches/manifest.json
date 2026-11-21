@@ -2,7 +2,7 @@
     "name": "Red switches",
     "author": "OlegTheSnowman",
     "version": "1.0",
-    "description": "",
+    "description": "Mechanical keyboard with red switches.",
     "files": {
         "LETTER": [
             "letter_1.wav",
