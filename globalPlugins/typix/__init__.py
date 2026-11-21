@@ -263,6 +263,14 @@ def _is_editable(obj):
         return False
 
 
+def _in_terminal(obj):
+    """True in a terminal, and for an object that can't say what it is."""
+    try:
+        return obj.role == controlTypes.Role.TERMINAL
+    except Exception:
+        return True
+
+
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     # Translators: Category name of Typix commands in NVDA's Input gestures dialog.
     scriptCategory = _("Typix")
@@ -809,6 +817,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             if serial != self._hold_serial:
                 return
             _trace_field(obj, "after the swap")
+            if ok and self._echo_words(obj):
+                speech.speakText(" ".join(f[2] for f in found))
             self._alert("REPLACED", 660)
             self._finish_swap(obj)
             self._end_auto()
@@ -1200,11 +1210,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         replacement = None
         prefix = None
         speak = self._echo_words(obj)
-        try:
-            # Terminals: NVDA delays echo there; leave the field alone.
-            in_terminal = obj.role == controlTypes.Role.TERMINAL
-        except Exception:
-            in_terminal = True
+        # Terminals: NVDA delays echo there; leave the field alone.
+        in_terminal = _in_terminal(obj)
         rules_on = bool(self._expansions)
         if not in_terminal and (speak or self._spellcheck_enabled or rules_on):
             lines = _lines_before_caret(obj)
@@ -1230,9 +1237,11 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                     else:
                         _trace("field word %r doesn't end with buffered %r, left alone", found, buffered)
                     break
-        if speak and len(word) <= 100 and (replacement or word != buffered):
+        # A replacement is spoken once it is in the field, by _auto_swap;
+        # the swap can still be dropped or fail.
+        if speak and len(word) <= 100 and word != buffered:
             speech.clearTypedWordBuffer()
-            speech.speakText(replacement or word)
+            speech.speakText(word)
         return word, token, replacement, prefix
 
     def event_typedCharacter(self, obj, nextHandler, ch):
@@ -1267,6 +1276,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         if (
             ch in addon_spellcheck.APOSTROPHES and chars and not protected
             and (self._spellcheck_enabled or self._echo_words(obj))
+            and not _in_terminal(obj)
         ):
             # NVDA ends a word at an apostrophe and would say "can" for
             # "can't". Hold the word back: if a letter follows, the whole
@@ -1302,7 +1312,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         # Spelling works whether or not typing sounds are on. An expanded
         # shortcut isn't checked.
         if (
-            word and word not in self._expansions and self._spellcheck_enabled and self._category_on("MISSPELLED")
+            word and word not in self._expansions and self._spellcheck_enabled
             and not addon_spellcheck.looks_like_code(token)
         ):
             lang = _input_language(obj)
@@ -1355,8 +1365,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         paths = []
         if category == "CAPS_LETTER":
             paths.append(loader.get_sound_path(pack, "CAPS_LETTER"))
-            category = "LETTER"
-        paths.append((char and loader.get_char_sound_path(pack, char)) or loader.get_sound_path(pack, category))
+            # With Letters unchecked a capital plays only its caps sound.
+            category = "LETTER" if self._category_on("LETTER") else None
+        if category:
+            paths.append((char and loader.get_char_sound_path(pack, char)) or loader.get_sound_path(pack, category))
         paths = [p for p in paths if p]
         for path in paths:
             self.audio_engine.play_sound(path, pan=pan, pitch=pitch)
