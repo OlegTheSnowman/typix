@@ -1,5 +1,5 @@
-import wave
 import array
+import struct
 import queue
 import sys
 import threading
@@ -48,6 +48,47 @@ def resample(samples, channels, ratio):
             s0 = samples[a + ch]
             out[o + ch] = int(s0 + (samples[b + ch] - s0) * frac)
     return out
+
+
+_WAVE_PCM = 1
+_WAVE_FLOAT = 3
+_WAVE_EXTENSIBLE = 0xFFFE
+
+
+def read_wav(path):
+    """Reads a WAV file: (channels, rate, is_float, bytes per sample, data).
+    Python's wave module only reads integer PCM, so a 32-bit float WAV, a
+    common export format, used to load as silence while its pack still
+    showed in the list. Raises ValueError for anything else."""
+    with open(path, "rb") as f:
+        data = f.read()
+    if data[:4] != b"RIFF" or data[8:12] != b"WAVE":
+        raise ValueError("not a WAV file")
+    fmt = raw = None
+    pos = 12
+    while pos + 8 <= len(data):
+        chunk = data[pos:pos + 4]
+        size = int.from_bytes(data[pos + 4:pos + 8], "little")
+        body = data[pos + 8:pos + 8 + size]
+        if chunk == b"fmt " and fmt is None:
+            fmt = body
+        elif chunk == b"data" and raw is None:
+            raw = body
+        pos += 8 + size + (size & 1)
+    if fmt is None or raw is None or len(fmt) < 16:
+        raise ValueError("no fmt or data chunk")
+    tag, channels, rate = struct.unpack_from("<HHI", fmt, 0)
+    bits = struct.unpack_from("<H", fmt, 14)[0]
+    if tag == _WAVE_EXTENSIBLE and len(fmt) >= 26:
+        tag = struct.unpack_from("<H", fmt, 24)[0]
+    width = (bits + 7) // 8
+    is_float = tag == _WAVE_FLOAT
+    if tag not in (_WAVE_PCM, _WAVE_FLOAT) or not channels or not rate:
+        raise ValueError(f"unsupported format {tag}")
+    if (is_float and width not in (4, 8)) or (not is_float and width not in (1, 2, 3, 4)):
+        raise ValueError(f"unsupported sample size {bits} bits")
+    frame = width * channels
+    return channels, rate, is_float, width, raw[:len(raw) - len(raw) % frame]
 
 
 def _clip(v):
@@ -117,16 +158,18 @@ class AudioEngine:
         if cached is not None:
             return cached
         try:
-            with wave.open(path, 'rb') as wf:
-                channels = wf.getnchannels()
-                sampwidth = wf.getsampwidth()
-                rate = wf.getframerate()
-                raw = wf.readframes(wf.getnframes())
+            channels, rate, is_float, sampwidth, raw = read_wav(path)
         except Exception as e:
             log.error(f"Typix: failed to load {path}: {e}")
             return None
         samples = array.array('h')
-        if sampwidth == 2:
+        if is_float:
+            floats = array.array('f' if sampwidth == 4 else 'd')
+            floats.frombytes(raw)
+            if sys.byteorder != "little":
+                floats.byteswap()
+            samples.extend(_clip(int(v * 32767.0)) for v in floats)
+        elif sampwidth == 2:
             samples.frombytes(raw)
             if sys.byteorder != "little":
                 samples.byteswap()

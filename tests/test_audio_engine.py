@@ -105,5 +105,50 @@ class TestAudioEngine(unittest.TestCase):
         self.engine.play_sound(os.path.join(self.tmp, "nope.wav"))
 
 
+def write_float_wav(path, channels, rate, values, extensible=False):
+    """A 32-bit float WAV, which Python's wave module can't write or read."""
+    import struct
+    data = array.array("f", values).tobytes()
+    if extensible:
+        fmt = struct.pack("<HHIIHHHHI", 0xFFFE, channels, rate, rate * channels * 4, channels * 4, 32, 22, 32, 0)
+        fmt += struct.pack("<H", 3) + bytes(14)
+    else:
+        fmt = struct.pack("<HHIIHH", 3, channels, rate, rate * channels * 4, channels * 4, 32)
+    body = b"WAVE" + b"fmt " + struct.pack("<I", len(fmt)) + fmt + b"data" + struct.pack("<I", len(data)) + data
+    with open(path, "wb") as f:
+        f.write(b"RIFF" + struct.pack("<I", len(body)) + body)
+
+
+class TestFloatWav(unittest.TestCase):
+    # A float WAV used to load as silence while its pack still showed in the list.
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.engine = AudioEngine()
+
+    def tearDown(self):
+        self.engine.close()
+        shutil.rmtree(self.tmp)
+
+    def _check(self, extensible):
+        p = os.path.join(self.tmp, "f.wav")
+        write_float_wav(p, 1, OUTPUT_RATE, [0.5] * 100, extensible)
+        out = array.array("h")
+        out.frombytes(self.engine._get_processed(p, 0.0, 1.0, 0.0))
+        self.assertEqual(len(out), 200)
+        self.assertAlmostEqual(out[0], 8191, delta=2)
+
+    def test_plain_float(self):
+        self._check(False)
+
+    def test_extensible_float(self):
+        self._check(True)
+
+    def test_not_a_wav_is_refused(self):
+        p = os.path.join(self.tmp, "x.wav")
+        with open(p, "wb") as f:
+            f.write(b"not a wav at all")
+        self.assertIsNone(self.engine._load_raw(p))
+
+
 if __name__ == "__main__":
     unittest.main()
