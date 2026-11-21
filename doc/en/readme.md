@@ -30,21 +30,21 @@ Play typing sounds turns all typing sounds on or off.
 
 ### Character rules for every pack
 
-A rule sets the pan and pitch of one character for every pack. Add rule asks for a character, then for its pan, from -100 full left to 100 full right, and its pitch in semitones, from -24 to 24. Leave a value at 0 to keep what the pack says.
+A rule sets the pan and pitch of one character for every pack. Add rule asks for a character, then for its pan, from -100 full left to 100 full right, and its pitch in semitones, from -24 to 24. Leave a value at 0 to keep what the pack says. Edit rule and Remove rule change or drop the selected rule.
 
 ### Text replacements
 
-A replacement turns a shortcut word into text as you type. Add a replacement from myemail to your email address, and when you finish myemail with a space, punctuation or Enter, Typix puts your address there. A shortcut must be one word.
+A replacement turns a shortcut word into text as you type. Add a replacement from myemail to your email address, and when you finish myemail with a space, punctuation or Enter, Typix puts your address there. A shortcut must be one word. Edit replacement and Remove replacement change or drop the selected one.
 
-Replacements and automatic capitals don't run in terminals, where a capital would break commands: git would become Git. Spelling beeps and the spelling command still work there.
+Typix makes the replacement when you pause typing, so it can happen a word or two after the shortcut. Keys you press while it swaps the text are held and typed right after, so nothing is lost.
 
-Two checkboxes add automatic capitals: one for the first word of a sentence, and one for a lone i, including i'm, i'll, i've and i'd. A dot inside a chunk like e.g. or a file name doesn't count as the end of a sentence.
+Replacements don't run in terminals, where they could break commands. Spelling beeps and the spelling command still work there.
 
 When Typix replaces something, it says the new text if NVDA's Speak typed words is on. It then plays the Automatic replacement sound, or a short beep if the pack has none.
 
 To make the change, Typix selects the word, checks that it really is that word, and types the new text over it. NVDA doesn't read out the selection, and anything else it has to say comes through as usual. If Typix can't select the word safely, the text stays as it was. Ctrl+Z in the app undoes a replacement you didn't want, though some apps need more than one press.
 
-Typix never uses the clipboard. A typed Enter or Tab could send a message in a chat app, so a word you end with Enter or Tab isn't replaced or capitalized.
+Typix never uses the clipboard. A typed Enter or Tab could send a message in a chat app, so a word you end with Enter or Tab isn't replaced.
 
 Replacements are saved in NVDA's configuration, so a configuration profile can have its own set, and Typix follows the profile when NVDA switches to it.
 
@@ -56,7 +56,7 @@ Typix doesn't check single letters, words containing digits, links, email addres
 
 The first time you use a language, Typix downloads its dictionary from LibreOffice's dictionaries on GitHub. This is the only time Typix goes online, and what you type is never sent anywhere.
 
-Custom dictionary lists the words you've marked as correct. You can also open it from the NVDA menu, under Tools, Typix.
+Custom dictionary lists the words you've marked as correct. Add word asks for a word and its language, like en_US, and Remove word takes the selected word out. You can also open it from the NVDA menu, under Tools, Typix.
 
 ### Whole word echo
 
@@ -88,7 +88,7 @@ The suggestions list always opens in front, like NVDA's own dialogs. Each sugges
 
 Statistics open in a window with a read-only text field and a Close button. Read the field with the arrow keys, and press Escape to close it.
 
-The first line sums things up: your current speed, today's average, words and misspellings today, your average over all days, and your best speed. Below it are sections for today, the last 7 days and all time, each with words, characters typed, characters deleted, misspellings, time spent typing and average speed. The all time section also gives the number of days with typing, your best speed and your busiest day. The last section has one line for each of your 7 most recent days with typing.
+The first line sums things up: your current speed, today's average, words and misspellings today, your average over all days, and your best speed. Below it are sections for today, the last 7 days and all time, each with words, characters typed, characters deleted, misspellings, time spent typing and average speed, plus misspellings per 100 words once there are words to count. The all time section also gives the number of days with typing, your best speed and your busiest day. The last section has one line for each of your 7 most recent days with typing.
 
 Speed is net words per minute, counting five characters as a word, as typing tests do. Characters you deleted with Backspace are taken off, and a key held down to auto-repeat isn't counted. Pauses longer than five seconds don't count as typing time, so the number reads a little higher than a typing test that counts every second. Your best speed only counts stretches of at least 50 keys.
 
@@ -122,7 +122,7 @@ Pick a category, then use these controls:
 | Delete | Delete | letter sound |
 | Punctuation and symbols | punctuation, currency and other symbols | letter sound |
 | Misspelled word | a finished word that's misspelled | a short beep |
-| Automatic replacement | a text replacement or automatic capital | a short beep |
+| Automatic replacement | a text replacement | a short beep |
 
 ### Characters
 
