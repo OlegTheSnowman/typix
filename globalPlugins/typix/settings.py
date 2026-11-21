@@ -721,7 +721,7 @@ class TypixSettingsPanel(gui.settingsDialogs.SettingsPanel):
         helper.addItem(rules)
         self._refresh_rules()
 
-        # Translators: Group in Typix settings for text replacements and automatic capitals.
+        # Translators: Group in Typix settings for text replacements.
         replacing, box = _group(self, _("Text replacements"))
         self._expansions = addon_config.get_json("expansions_json")
         # Translators: Label of the list of text replacements, each a shortcut and the text it becomes.
@@ -734,16 +734,6 @@ class TypixSettingsPanel(gui.settingsDialogs.SettingsPanel):
         # Translators: Button that removes the selected text replacement.
         buttons.addButton(box, label=_("Remove replacement")).Bind(wx.EVT_BUTTON, self._on_remove_expansion)
         replacing.addItem(buttons)
-        self.capitalizeSentencesCheckbox = replacing.addItem(
-            # Translators: Checkbox that capitalises the first word of each sentence as you type.
-            wx.CheckBox(box, label=_("Capitali&ze the first word of a sentence")),
-        )
-        self.capitalizeSentencesCheckbox.SetValue(get("capitalize_sentences"))
-        self.capitalizeICheckbox = replacing.addItem(
-            # Translators: Checkbox that turns a lone lowercase i, and i'm, i'll and so on, into a capital I.
-            wx.CheckBox(box, label=_("Capital I when i stands a&lone")),
-        )
-        self.capitalizeICheckbox.SetValue(get("capitalize_i"))
         helper.addItem(replacing)
         self._refresh_expansions()
 
@@ -1040,8 +1030,6 @@ class TypixSettingsPanel(gui.settingsDialogs.SettingsPanel):
             set_("current_pack", key)
         addon_config.set_json("global_char_rules_json", self._rules)
         addon_config.set_json("expansions_json", self._expansions)
-        set_("capitalize_sentences", self.capitalizeSentencesCheckbox.IsChecked())
-        set_("capitalize_i", self.capitalizeICheckbox.IsChecked())
         plugin = _get_plugin()
         plugin.update_settings()
         plugin.reload_packs()

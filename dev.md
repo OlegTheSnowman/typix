@@ -17,6 +17,8 @@ Typix is an NVDA add-on that plays a sound for each key typed in a text field, a
 
 `event_typedCharacter` handles ordinary characters. `inputCore.decide_executeGesture` handles Backspace, Delete, Enter and Tab, which never fire that event; the hook must always return True, or NVDA drops the key.
 
+Text replacements wait for a pause of `_IDLE_BEFORE_REPLACE` with no modifier down. Then they hold every key at `inputCore.decide_handleRawKey`, wait until the character keys already let through have arrived as typed characters, select from the first waiting word to the caret, type that stretch again with every replacement in it, and replay the held keys in order. Typing only the word and moving the caret back lost the rest of the line on claude.ai in Firefox, and stepping through text character by character froze NVDA there. Without the hold, a key already on its way lands on the selected word and wipes it out. The raw hook runs on NVDA's input thread: keep it quick, never let it raise, and keep the hold's timer. Fixes chosen by command don't hold keys.
+
 An exception before `nextHandler()` costs NVDA the character, so everything before it is guarded. UIA objects can die mid-call with a COMError.
 
 `_is_editable` accepts `DOCUMENT` as well as `EDITABLETEXT` and `TERMINAL`, because modern Word reports its document as `DOCUMENT`. If an app is silent, look here first.
@@ -39,7 +41,7 @@ Never mute NVDA for a swap: `setSpeechMode` drops everything else too, such as t
 
 Don't position text with Backspace or arrow keys. It broke in rich web editors.
 
-Automatic rules don't run in terminals, where a capital would break commands. In a password field every character key plays the plain letter sound, centred, and nothing is read or replaced.
+Text replacements don't run in terminals, where they could break commands. In a password field every character key plays the plain letter sound, centred, and nothing is read or replaced.
 
 ## NVDA versions
 
@@ -48,3 +50,9 @@ The minimum is 2026.1, the first 64-bit NVDA, so only the 64-bit spelling librar
 ## Settings panel
 
 Controls inside a `_group` box must use the box as their parent. Mixed parents scramble the Tab order.
+
+## Reloading while you work
+
+`python tools/dev_install.py` copies the current code into the installed Typix and adds a small reloader next to it. Press NVDA+Ctrl+F3 once. After that, saving a .py file under `globalPlugins/typix` copies it over and reloads NVDA's plugins, and NVDA says "Typix reloaded". A syntax error isn't copied; NVDA says the file and line instead. Only .py files are copied, so rebuild and reinstall after changing sounds, libraries or translations.
+
+The reloader lives only in your NVDA configuration, never in the repository's package. `python tools/dev_install.py --remove` takes it out, and installing any Typix package replaces it.

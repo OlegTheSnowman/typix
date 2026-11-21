@@ -21,8 +21,6 @@ CONF_SPEC = {
     "global_char_rules_json": "string(default='{}')",
     # Text replacements: JSON dict of shortcut word -> replacement text
     "expansions_json": "string(default='{}')",
-    "capitalize_sentences": "boolean(default=False)",
-    "capitalize_i": "boolean(default=False)",
     # Legacy key, read once by _migrate_panning_to_rules
     "global_char_panning_json": "string(default='{}')",
     "categories": {cat: "boolean(default=True)" for cat in CATEGORIES},

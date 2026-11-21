@@ -164,37 +164,25 @@ def load_plugin():
 plugin_module = load_plugin()
 
 
-class TestSentenceStart(unittest.TestCase):
+class TestReplacementRules(unittest.TestCase):
     def setUp(self):
         self.plugin = plugin_module.GlobalPlugin.__new__(plugin_module.GlobalPlugin)
-        self.plugin._expansions = {}
-        self.plugin._capitalize_i = False
-        self.plugin._capitalize_sentences = True
+        self.plugin._expansions = {"brb": "be right back"}
         self.plugin._spellcheck_enabled = False
 
-    def replacement(self, text, buffered):
-        return self.plugin._finished_word(FakeField(text), buffered)[2]
+    def finished(self, text, buffered):
+        return self.plugin._finished_word(FakeField(text), buffered)
 
-    def test_first_word_of_the_field(self):
-        self.assertEqual(self.replacement("this ", "this"), "This")
+    def test_a_shortcut_is_replaced(self):
+        self.assertEqual(self.finished("ok brb ", "brb")[2], "be right back")
 
-    def test_first_word_when_the_ending_character_is_not_in_the_field_yet(self):
-        self.assertEqual(self.replacement("this", "this"), "This")
+    def test_the_text_before_the_word_is_returned_for_finding_it_again(self):
+        self.assertEqual(self.finished("ok brb ", "brb")[3], "ok ")
 
-    def test_word_after_a_full_stop(self):
-        self.assertEqual(self.replacement("Done. this ", "this"), "This")
-
-    def test_word_in_the_middle_of_a_sentence_stays(self):
-        self.assertIsNone(self.replacement("This is ", "is"))
-
-    def test_first_word_on_a_line_after_a_finished_sentence(self):
-        self.assertEqual(self.replacement("Done.\nthis ", "this"), "This")
-
-    def test_first_word_on_a_line_after_an_unfinished_one_stays(self):
-        self.assertIsNone(self.replacement("and so\nthis ", "this"))
-
-    def test_first_word_after_a_blank_line(self):
-        self.assertEqual(self.replacement("and so\n\nthis ", "this"), "This")
+    def test_words_are_no_longer_capitalised(self):
+        # Automatic capitals were removed: unreliable in browser editors.
+        self.assertIsNone(self.finished("Done. this ", "this")[2])
+        self.assertIsNone(self.finished("so i ", "i")[2])
 
 
 class TestReplace(unittest.TestCase):
@@ -229,9 +217,9 @@ class TestReplace(unittest.TestCase):
         plugin_module.api.getFocusObject.return_value = self.field
         return self.field
 
-    def replace(self, text, word="this", new="This", quiet=True):
+    def replace(self, text, word="this", new="This"):
         self.use(text)
-        self.plugin._replace(self.field, word, new, 0, quiet)
+        self.plugin._replace(self.field, word, new, 0)
         self.field.process_queue()
 
     def check_selection(self, text, fixes, selection=None):
@@ -254,18 +242,8 @@ class TestReplace(unittest.TestCase):
         self.plugin._type("a\U0001f600")
         self.assertEqual([ord(c) for c in self.field.queued[0]], [0x61, 0xd83d, 0xde00])
 
-    def test_a_rule_leaves_a_word_ended_with_enter_alone(self):
-        self.replace("this\r\n")
-        self.send_input.assert_not_called()
-        self.assertEqual(self.field.text, "this\r\n")
-        self.assertEqual(self.field.selection[0], self.field.selection[1])
-
-    def test_a_rule_never_types_text_holding_a_line_break(self):
-        self.replace("sig ", "sig", "Regards,\nOleg")
-        self.send_input.assert_not_called()
-
     def test_a_fix_across_a_line_break_types_only_the_word_and_restores_the_caret(self):
-        self.replace("teh\r\nmore", "teh", "the", quiet=False)
+        self.replace("teh\r\nmore", "teh", "the")
         self.assertEqual(self.field.text, "the\r\nmore")
         self.assertEqual(self.field.selection, (len(self.field.text),) * 2)
         self.assertEqual(self.message(), "the")
@@ -273,7 +251,7 @@ class TestReplace(unittest.TestCase):
     def test_failed_typing_does_not_leave_the_word_selected(self):
         self.use("this ")
         self.send_input.side_effect = OSError
-        self.plugin._replace(self.field, "this", "This", 0, False)
+        self.plugin._replace(self.field, "this", "This", 0)
         start, end = self.field.selection
         self.assertEqual(start, end)
         self.assertIn("safely", self.message())
@@ -309,7 +287,7 @@ class TestReplace(unittest.TestCase):
 
     def test_replacing_never_mutes_nvda(self):
         self.replace("this ")
-        self.replace("teh\r\nmore", "teh", "the", quiet=False)
+        self.replace("teh\r\nmore", "teh", "the")
         self.check_selection("helo ok", [(0, "helo", "hello")])
         plugin_module.speech.setSpeechMode.assert_not_called()
 
@@ -323,7 +301,7 @@ class TestReplace(unittest.TestCase):
     def test_a_failed_replace_ends_the_hold(self):
         self.use("this ")
         self.send_input.side_effect = OSError
-        self.plugin._replace(self.field, "this", "This", 0, True)
+        self.plugin._replace(self.field, "this", "This", 0)
         self.assertIsNone(self.plugin._hush)
 
     def test_caret_events_held_for_the_field_only_and_not_for_long(self):
@@ -347,7 +325,7 @@ class TestReplace(unittest.TestCase):
     def test_a_selection_that_shows_up_late_still_gets_replaced(self):
         self.use("this ")
         self.field.selects = "late"
-        self.plugin._replace(self.field, "this", "This", 0, True)
+        self.plugin._replace(self.field, "this", "This", 0)
         self.field.process_queue()
         self.assertEqual(self.field.text, "This ")
         self.assertEqual(self.field.selection, (5, 5))
@@ -355,7 +333,7 @@ class TestReplace(unittest.TestCase):
     def test_a_selection_that_never_shows_up_types_nothing(self):
         self.use("this ")
         self.field.selects = "never"
-        self.plugin._replace(self.field, "this", "This", 0, False)
+        self.plugin._replace(self.field, "this", "This", 0)
         self.send_input.assert_not_called()
         self.assertEqual(self.field.text, "this ")
         self.assertIn("safely", self.message())
@@ -467,12 +445,11 @@ class TestWordCount(unittest.TestCase):
         self.plugin._own_deadline = 0.0
         self.plugin._apostrophe_word = None
         self.plugin._expansions = {}
-        self.plugin._capitalize_i = False
-        self.plugin._capitalize_sentences = False
         self.plugin._spellcheck_enabled = False
         self.plugin._enabled = False
         self.plugin._categories_cfg = {"MISSPELLED": False}
         self.plugin._stats = mock.MagicMock()
+        self.plugin._init_auto_replace()
         plugin_module.api.isTypingProtected.return_value = False
         plugin_module.speech.speech._curWordChars = list("test")
         self.field = FakeField("test")
@@ -486,25 +463,14 @@ class TestWordCount(unittest.TestCase):
         self.plugin._stats.word.assert_called_once()
         self.plugin._stats.key.assert_not_called()
 
-    def test_the_fix_command_looks_for_the_capitalised_form_of_a_misspelling(self):
-        self.plugin._capitalize_sentences = True
-        self.plugin._spellcheck_enabled = True
-        self.plugin._categories_cfg = {"MISSPELLED": True}
-        self.plugin._alert = mock.MagicMock()
-        self.plugin._last_misspelling = None
-        plugin_module.core.callLater.reset_mock(side_effect=True)
-        with mock.patch.object(plugin_module.addon_spellcheck, "check_word", return_value=False):
-            self.type(" ")
-        self.assertEqual(self.plugin._last_misspelling.word, "Test")
-
     def test_enter_never_starts_a_replacement(self):
-        self.plugin._capitalize_sentences = True
+        self.plugin._expansions = {"test": "a test"}
         plugin_module.core.callLater.reset_mock(side_effect=True)
         self.type("\r")
         plugin_module.core.callLater.assert_not_called()
 
     def test_space_still_starts_a_replacement(self):
-        self.plugin._capitalize_sentences = True
+        self.plugin._expansions = {"test": "a test"}
         plugin_module.core.callLater.reset_mock(side_effect=True)
         self.type(" ")
         plugin_module.core.callLater.assert_called_once()
@@ -524,6 +490,260 @@ class TestWordCount(unittest.TestCase):
         self.plugin._stats.key.assert_called_once()
         self.assertTrue(self.plugin._stats.key.call_args[1]["word_ended"])
         self.plugin._stats.word.assert_not_called()
+
+
+class TestAutoReplace(unittest.TestCase):
+    """Automatic replacements select a word and type over it. A key typed
+    in between used to land on the selection and wipe out text on
+    claude.ai ("this is a test" became "s a test"), so they wait for a
+    pause, hold keys, type only the words and put the caret back."""
+
+    def setUp(self):
+        self.plugin = plugin_module.GlobalPlugin.__new__(plugin_module.GlobalPlugin)
+        self.plugin._terminated = False
+        self.plugin._init_auto_replace()
+        self.plugin._own_chars = plugin_module.deque()
+        self.plugin._own_deadline = 0.0
+        self.plugin._hush = None
+        self.plugin._hush_serial = 0
+        self.plugin._alert = mock.MagicMock()
+        plugin_module.eventHandler.isPendingEvents.return_value = False
+        plugin_module.winUser.getAsyncKeyState.return_value = 0
+        self.later = []
+        plugin_module.core.callLater.reset_mock()
+        plugin_module.core.callLater.side_effect = lambda delay, f, *a: self.later.append((delay, f, a))
+        self.typed = []
+        self.replayed = []
+        self.send_input = plugin_module.winUser.SendInput
+        self.send_input.reset_mock(side_effect=True)
+
+        def send_input(inputs):
+            if isinstance(inputs[0].ii.ki.wVk, int):
+                self.replayed.append([(i.ii.ki.wVk, i.ii.ki.dwFlags) for i in inputs])
+            else:
+                self.typed.append("".join(chr(i.ii.ki.wScan) for i in inputs[::2]))
+                self.field.send_input(inputs)
+        self.send_input.side_effect = send_input
+
+    def use(self, text, caret=None):
+        caret = len(text) if caret is None else caret
+        self.field = FakeField(text, (caret, caret))
+        plugin_module.api.getFocusObject.return_value = self.field
+        return self.field
+
+    def step(self):
+        """Runs what is due now; the hold's 2 second timer is left alone."""
+        self.field.process_queue()
+        due = [item for item in self.later if item[0] < 1000]
+        self.later = [item for item in self.later if item[0] >= 1000]
+        for _delay, f, args in due:
+            f(*args)
+        return bool(due)
+
+    def run_all(self):
+        for _ in range(200):
+            if not self.step():
+                break
+        self.field.process_queue()
+
+    def queue(self, word, replacement, prefix):
+        self.plugin._queue_auto_replace(self.field, word, replacement, prefix)
+
+    def test_waits_while_keys_are_still_coming(self):
+        self.use("this ")
+        self.plugin._last_key_time = plugin_module.time.monotonic()
+        self.queue("this", "This", "")
+        self.step()
+        self.assertEqual(self.field.text, "this ")
+        self.assertTrue(self.later)
+
+    def test_waits_while_a_modifier_is_down(self):
+        self.use("this ")
+        plugin_module.winUser.getAsyncKeyState.return_value = 0x8000
+        self.queue("this", "This", "")
+        self.step()
+        self.step()
+        self.assertEqual(self.field.text, "this ")
+        self.assertFalse(self.plugin._holding)
+
+    def test_the_stretch_to_the_caret_is_typed_once(self):
+        # Typing only the word and moving the caret back lost the rest of
+        # the line on claude.ai in Firefox.
+        self.use("this is a test ")
+        self.queue("this", "This", "")
+        self.run_all()
+        self.assertEqual(self.field.text, "This is a test ")
+        self.assertEqual(self.field.selection, (15, 15))
+        self.assertEqual(self.typed, ["This is a test "])
+
+    def test_the_caret_distance_is_read_not_stepped(self):
+        # Stepping character by character froze NVDA for seconds in Firefox.
+        self.use("this is a test ")
+        self.queue("this", "This", "")
+        with mock.patch.object(plugin_module, "_distance", side_effect=AssertionError("stepped")):
+            self.run_all()
+        self.assertEqual(self.field.text, "This is a test ")
+        self.assertEqual(self.field.selection, (15, 15))
+
+    def test_two_words_waiting_are_both_replaced(self):
+        self.use("i think i am ")
+        self.queue("i", "I", "")
+        self.queue("i", "I", "i think ")
+        self.run_all()
+        self.assertEqual(self.field.text, "I think I am ")
+        self.assertEqual(self.field.selection, (13, 13))
+        self.assertEqual(self.typed, ["I think I am "])
+
+    def test_replacements_of_another_length_keep_the_caret_right(self):
+        self.use("brb so i went ")
+        self.queue("brb", "be right back", "")
+        self.queue("i", "I", "brb so ")
+        self.run_all()
+        self.assertEqual(self.field.text, "be right back so I went ")
+        self.assertEqual(self.field.selection, (24, 24))
+
+    def test_the_caret_goes_back_inside_the_text(self):
+        self.use("this is more", caret=8)
+        self.queue("this", "This", "")
+        self.run_all()
+        self.assertEqual(self.field.text, "This is more")
+        self.assertEqual(self.field.selection, (8, 8))
+
+    def test_keys_during_the_swap_are_held_and_replayed_in_order(self):
+        self.use("this is ")
+        self.field.selects = "late"
+        self.queue("this", "This", "")
+        self.step()
+        self.assertTrue(self.plugin._holding)
+        self.assertFalse(self.plugin._on_raw_key(vkCode=0x41, scanCode=30, extended=False, pressed=True))
+        self.assertFalse(self.plugin._on_raw_key(vkCode=0x41, scanCode=30, extended=False, pressed=False))
+        self.assertEqual(self.replayed, [])
+        self.run_all()
+        self.assertEqual(self.field.text, "This is ")
+        self.assertEqual(len(self.replayed), 1)
+        self.assertEqual([vk for vk, _flags in self.replayed[0]], [0x41, 0x41])
+        # Once replayed, keys pass straight through again.
+        self.assertTrue(self.plugin._on_raw_key(vkCode=0x41, scanCode=30, extended=False, pressed=True))
+
+    def test_waits_for_keys_already_let_through(self):
+        self.use("this ")
+        self.plugin._on_raw_key(vkCode=0x41, scanCode=30, pressed=True)
+        self.plugin._last_key_time -= 0.5  # pressed a while ago, still not arrived
+        self.queue("this", "This", "")
+        self.step()
+        self.step()
+        self.assertEqual(self.field.text, "this ")
+        self.assertFalse(self.plugin._holding)  # waiting holds no keys
+        with self.plugin._key_lock:
+            self.plugin._keys_arrived += 1
+        self.run_all()
+        self.assertEqual(self.field.text, "This ")
+
+    def test_typixs_own_unicode_input_is_never_held(self):
+        self.use("")
+        self.plugin._hold_keys()
+        self.assertTrue(self.plugin._on_raw_key(vkCode=plugin_module._VK_PACKET, scanCode=0, pressed=True))
+
+    def test_keys_pass_when_nothing_is_being_replaced(self):
+        self.use("")
+        self.assertTrue(self.plugin._on_raw_key(vkCode=0x41, scanCode=30, pressed=True))
+
+    def test_a_hold_that_outlives_its_timer_gives_the_keys_back(self):
+        self.use("")
+        self.plugin._auto_busy = True
+        serial = self.plugin._hold_keys()
+        self.plugin._on_raw_key(vkCode=0x41, scanCode=30, pressed=True)
+        self.plugin._hold_deadline = 0.0
+        self.plugin._hold_expired(serial)
+        self.assertFalse(self.plugin._holding)
+        self.assertFalse(self.plugin._auto_busy)
+        self.assertEqual(len(self.replayed), 1)
+
+    def test_a_word_that_cannot_be_selected_is_left_alone_and_the_keys_come_back(self):
+        self.use("this is ")
+        self.field.selects = "never"
+        real_await = self.plugin._await_selection
+
+        def key_while_selecting(obj, expected):
+            self.plugin._on_raw_key(vkCode=0x41, scanCode=30, pressed=True)
+            real_await(obj, expected)
+        self.plugin._await_selection = key_while_selecting
+        self.queue("this", "This", "")
+        self.run_all()
+        self.assertEqual(self.field.text, "this is ")
+        self.assertEqual(self.field.selection, (8, 8))
+        self.assertFalse(self.plugin._auto_busy)
+        self.assertEqual(len(self.replayed), 1)
+
+    def test_a_word_with_a_line_break_after_it_is_left_alone(self):
+        # Enter may have sent it already, in a chat app.
+        self.use("this\r\nmore ")
+        self.queue("this", "This", "")
+        self.run_all()
+        self.assertEqual(self.field.text, "this\r\nmore ")
+        self.assertEqual(self.typed, [])
+
+    def test_enter_drops_the_replacements_waiting(self):
+        self.use("this ")
+        self.queue("this", "This", "")
+        self.plugin._is_own_char = lambda ch: False
+        plugin_module.api.isTypingProtected.return_value = False
+        plugin_module.speech.speech._curWordChars = []
+        self.plugin._apostrophe_word = None
+        self.plugin._spellcheck_enabled = False
+        self.plugin._enabled = False
+        self.plugin._stats = mock.MagicMock()
+        self.plugin.event_typedCharacter(self.field, mock.MagicMock(), "\r")
+        self.run_all()
+        self.assertEqual(self.field.text, "this ")
+
+    def test_a_replacement_holding_a_line_break_is_never_typed(self):
+        self.use("sig ")
+        self.queue("sig", "Regards,\nOleg", "")
+        self.run_all()
+        self.assertEqual(self.field.text, "sig ")
+
+    def test_keys_come_back_only_once_nothing_is_selected(self):
+        self.use("this is ")
+        self.field.selection = (0, 4)
+        states = []
+        send = self.send_input.side_effect
+
+        def record(inputs):
+            states.append(self.field.selection[0] == self.field.selection[1])
+            send(inputs)
+        self.send_input.side_effect = record
+        self.plugin._auto_busy = True
+        self.plugin._hold_keys()
+        self.plugin._on_raw_key(vkCode=0x41, scanCode=30, pressed=True)
+        self.plugin._end_auto()
+        self.run_all()
+        self.assertEqual(states, [True])
+
+    def test_a_slow_swap_renews_the_hold(self):
+        self.use("")
+        self.plugin._auto_busy = True
+        serial = self.plugin._hold_keys()
+        self.plugin._hold_expired(serial)  # its deadline hasn't passed
+        self.assertTrue(self.plugin._holding)
+
+    def test_a_word_no_longer_there_is_skipped(self):
+        self.use("so this ")
+        self.queue("this", "This", "")
+        self.run_all()
+        self.assertEqual(self.field.text, "so this ")
+        self.assertFalse(self.plugin._holding)
+
+
+class TestFindWordPrefix(unittest.TestCase):
+    def test_the_occurrence_with_the_right_text_before_it(self):
+        field = FakeField("this is this")
+        found = plugin_module.GlobalPlugin._find_word(field, "this", "")
+        self.assertEqual((found.start, found.end), (0, 4))
+
+    def test_no_occurrence_with_that_prefix_finds_nothing(self):
+        field = FakeField("so this")
+        self.assertIsNone(plugin_module.GlobalPlugin._find_word(field, "this", ""))
 
 
 class TestLinesBeforeCaret(unittest.TestCase):

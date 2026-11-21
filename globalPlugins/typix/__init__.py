@@ -4,6 +4,8 @@
 import os
 import re
 import time
+import threading
+import functools
 import shutil
 import logging
 import weakref
@@ -76,6 +78,33 @@ _NOT_TYPED = "\r\n\t"
 _OWN_CHARS_TIMEOUT = 2.0
 # Longest a field's caret events stay held with nothing renewing the hold, in seconds.
 _HUSH_TIMEOUT = 1.5
+# An automatic replacement waits for this long without a key, in seconds, so
+# no key the user already pressed is still on its way to the field.
+_IDLE_BEFORE_REPLACE = 0.35
+# Keys pressed during an automatic replacement are held at most this long.
+_KEY_HOLD_TIMEOUT = 2.0
+# After this long without a key, keys that never arrived are forgotten.
+_IN_FLIGHT_FORGET = 1.0
+# Words further than this from the caret are left alone.
+_CARET_LIMIT = 2000
+# Unicode input, as Typix types it; never held.
+_VK_PACKET = 0xE7
+_ALT_KEYS = {0x12, 0xA4, 0xA5}
+_MODIFIER_KEYS = (0x10, 0x11, 0x12, 0x5B, 0x5C)  # Shift, Ctrl, Alt, both Windows keys
+# Keys that normally produce a typed character: Backspace, Enter, space,
+# digits, letters, numpad and punctuation.
+_CHARACTER_KEYS = (
+    {0x08, 0x0D, 0x20} | set(range(0x30, 0x3A)) | set(range(0x41, 0x5B))
+    | set(range(0x60, 0x70)) | set(range(0xBA, 0xC1)) | set(range(0xDB, 0xE0)) | {0xE2}
+)
+
+
+def _modifier_down():
+    """Whether Shift, Ctrl, Alt or a Windows key is down. Never raises."""
+    try:
+        return any(winUser.getAsyncKeyState(vk) & 0x8000 for vk in _MODIFIER_KEYS)
+    except Exception:
+        return False
 # How long a selection gets to show up in the field, in seconds.
 _SELECT_TIMEOUT = 0.1
 # How long a swap gets to reach the field, in seconds.
@@ -84,8 +113,43 @@ _LAND_TIMEOUT = 1.0
 # caret events late, and one let through would read the old selection.
 _HUSH_GRACE = 300
 
-# "i" on its own and its contractions, for the capital I rule.
-_I_FORMS = {"i", "i'm", "i'll", "i've", "i'd"}
+# Developer tracing. On only when tools/dev_install.py has put its reloader
+# next to the add-on, so a packaged Typix never logs what is typed.
+_TRACE = os.path.exists(
+    os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "typixDevReload.py")
+)
+
+
+def _trace(message, *args, exc_info=False):
+    """Writes a line to the NVDA log in a developer install only."""
+    if _TRACE:
+        from logHandler import log
+        log.info("Typix trace: " + message, *args, exc_info=exc_info)
+
+
+def _trace_field(obj, label):
+    """Traces the caret's line and the selection in obj."""
+    if not _TRACE:
+        return
+    try:
+        line = obj.makeTextInfo(textInfos.POSITION_CARET)
+        line.expand(textInfos.UNIT_LINE)
+        selected = obj.makeTextInfo(textInfos.POSITION_SELECTION).text
+        _trace("%s: line %r, selection %r", label, line.text, selected)
+    except Exception:
+        _trace("%s: field unreadable", label, exc_info=True)
+
+
+def _describe(obj):
+    """Which control obj is, for traces."""
+    try:
+        return "%s role=%s window=%s app=%s" % (
+            type(obj).__name__, obj.role.name, obj.windowClassName, obj.appModule.appName
+        )
+    except Exception:
+        return repr(obj)
+
+
 
 _EDITABLE_ROLES = (
     controlTypes.Role.EDITABLETEXT,
@@ -241,12 +305,14 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         self._hush_serial = 0            # tells a swap's release from a newer swap's hold
         self._own_chars = deque()        # characters Typix typed, on their way back
         self._own_deadline = 0.0         # when to stop expecting them
+        self._init_auto_replace()
         # Typing statistics, kept across sessions; counts only, never text.
         self._stats = TypingStats(os.path.join(config_path, "typix_stats.json"))
         self.update_settings()
 
         gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(addon_settings.TypixSettingsPanel)
         inputCore.decide_executeGesture.register(self._on_gesture)
+        inputCore.decide_handleRawKey.register(self._on_raw_key)
         # Each NVDA profile can have its own Typix settings.
         nvda_config.post_configProfileSwitch.register(self.update_settings)
         self._typix_menu_item = None
@@ -267,6 +333,11 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     def terminate(self):
         self._terminated = True
         self._hush = None
+        try:
+            inputCore.decide_handleRawKey.unregister(self._on_raw_key)
+        except Exception:
+            pass
+        self._release_keys()
         try:
             inputCore.decide_executeGesture.unregister(self._on_gesture)
             nvda_config.post_configProfileSwitch.unregister(self.update_settings)
@@ -294,8 +365,6 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         self._debounce_ms = get("debounce_ms") or 0
         self._global_rules = addon_config.get_json("global_char_rules_json")
         self._expansions = addon_config.get_json("expansions_json")
-        self._capitalize_sentences = bool(get("capitalize_sentences"))
-        self._capitalize_i = bool(get("capitalize_i"))
         cats = get("categories")
         self._categories_cfg = {cat: bool(cats[cat]) for cat in CATEGORIES}
         self._spellcheck_enabled = bool(get("spellcheck_enabled"))
@@ -482,13 +551,18 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         gui.runScriptModalDialog(dlg, closed)
 
     @staticmethod
-    def _find_word(obj, word):
+    def _find_word(obj, word, prefix=None):
         """A text range over the last whole occurrence of word before the
-        caret, on the caret's line or the line above, or None."""
+        caret, on the caret's line or the line above, or None. With prefix,
+        only an occurrence with exactly that text before it on its line."""
         pattern = re.compile(r"(?<!\w)" + re.escape(word) + r"(?!\w)")
         try:
             for place in _lines_before_caret(obj):
-                matches = list(pattern.finditer(place.text or ""))
+                text = place.text or ""
+                matches = [
+                    m for m in pattern.finditer(text)
+                    if prefix is None or text[:m.start()] == prefix
+                ]
                 if matches:
                     found = place.copy()
                     found.collapse()
@@ -501,32 +575,32 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             logger.debug("Typix: could not search the field for a word", exc_info=True)
         return None
 
-    def _replace(self, obj, word, text, tries=40, quiet=False):
-        """Types text over word once focus is back in obj's window. The word
-        is selected through NVDA's text API and the selection is read back
-        before typing, so nothing but that exact word can be overwritten.
-        What follows the word up to the caret is typed again with it, in one
-        SendInput, so the caret stays where it was and a fast typist's next
-        key lands in the right place.
+    def _replace(self, obj, word, text, tries=40):
+        """Types text over word once focus is back in obj's window, for a
+        fix chosen by command. Automatic replacements use _auto_swap. The
+        word is selected through NVDA's text API and the selection is read
+        back before typing, so nothing but that exact word can be
+        overwritten. What follows the word up to the caret is typed again
+        with it, in one SendInput, so the caret stays where it was.
 
         A line break or Tab can't be typed: Enter sends the message in a
-        chat app. With one in that stretch, text replacement rules (quiet)
-        leave the word alone, and a fix asked for by command types only the
-        word and moves the caret back afterwards. The clipboard is never
-        used. NVDA isn't muted: only the field's caret events are held back
-        for the swap, so nothing else stops being spoken. Afterwards it says
-        the new text, or with quiet (already spoken) plays the replaced
-        sound."""
+        chat app. With one in that stretch, only the word is typed and the
+        caret is moved back afterwards. The clipboard is never used. NVDA
+        isn't muted: only the field's caret events are held back for the
+        swap, so nothing else stops being spoken. Afterwards it says the new
+        text."""
         if self._terminated:
             return
         if not _same_window(api.getFocusObject(), obj):
             if tries:
-                core.callLater(50, self._replace, obj, word, text, tries - 1, quiet)
-            elif not quiet:
+                core.callLater(50, self._replace, obj, word, text, tries - 1)
+            else:
                 ui.message(self._no_way_back())
             return
         # A browser may have made a new object for the field in the meantime.
+        old = obj
         obj = api.getFocusObject()
+        _trace("replace %r with %r, same object=%s, %s", word, text, obj is old, _describe(obj))
         caret = None
         try:
             found = self._find_word(obj, word)
@@ -536,8 +610,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             expected = span.text or ""
             tail = expected[len(word):]
             separated = any(c in tail + text for c in _NOT_TYPED)
-            if separated and quiet:
-                return
+            _trace("found=%r span to caret=%r tail=%r separated=%s", found.text, expected, tail, separated)
             if not expected.startswith(word):
                 raise LookupError("the word is not where it was found")
             if separated:
@@ -563,24 +636,275 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 return
             self._hold_selection_speech(obj)
             span.updateSelection()
+            _trace_field(obj, "just after selecting")
             self._await_selection(obj, expected)
+            _trace("typing %r over the selection", text + tail)
             self._type(text + tail)
         except Exception:
             logger.debug("Typix: replacing a word failed", exc_info=True)
+            _trace("replacing failed", exc_info=True)
+            if _TRACE:
+                for delay in (0, 30, 100, 250, 500, 1000):
+                    core.callLater(delay, _trace_field, obj, "%d ms after failing" % delay)
             # Left selected, the word would go with the next key.
             try:
                 caret.updateCaret()
             except Exception:
                 pass
-            self._finish_swap(obj, None if quiet else self._unsafe(word))
+            self._finish_swap(obj, self._unsafe(word))
             return
-        if quiet:
-            self._alert("REPLACED", 660)
-        else:
-            self._last_misspelling = None
+        self._last_misspelling = None
         # Not by the text before the caret: a fast typist's next key is
         # already there.
-        self._when_landed(obj, None, lambda ok: self._finish_swap(obj, None if quiet else text))
+        def done(ok):
+            if _TRACE:
+                try:
+                    line = obj.makeTextInfo(textInfos.POSITION_CARET)
+                    line.expand(textInfos.UNIT_LINE)
+                    _trace("landed=%s, line now %r", ok, line.text)
+                except Exception:
+                    _trace("landed=%s, line unreadable", ok, exc_info=True)
+            self._finish_swap(obj, text)
+        self._when_landed(obj, None, done)
+
+    # --- Automatic replacements ---
+    #
+    # Text replacements select a word and type over it. A key the user had already pressed could land on that selection
+    # and wipe it out: on claude.ai "this is a test" became "s a test". So
+    # they wait for a pause with no modifier down, hold every new key at
+    # NVDA's raw key hook, wait until keys already let through have reached
+    # the field, then swap and replay the held keys in order. All words
+    # waiting are swapped in one go, the last first, so the positions of the
+    # earlier ones stay valid. Only the words are typed, and the caret goes
+    # back where it was, so the app's undo takes back one word at a time.
+    # Fixes chosen by command don't need any of this: the user isn't typing.
+
+    def _init_auto_replace(self):
+        self._auto_pending = deque()     # (obj, word, replacement, prefix) waiting for a pause
+        self._auto_busy = False          # a swap is running
+        self._key_lock = threading.Lock()
+        self._held_keys = []             # raw key events held during a swap
+        self._holding = False
+        self._hold_serial = 0            # tells a hold's timer from a newer hold
+        self._hold_deadline = 0.0        # when the hold gives up, renewed at each step
+        self._last_key_time = 0.0        # last key press, from the raw hook
+        self._keys_sent = 0              # character keys let through the hook
+        self._keys_arrived = 0           # characters that reached event_typedCharacter
+        self._alt_down = False
+
+    def _queue_auto_replace(self, obj, word, replacement, prefix):
+        if any(c in replacement for c in _NOT_TYPED):
+            # Enter sends the message in a chat app.
+            return
+        self._auto_pending.append((obj, word, replacement, prefix))
+        if len(self._auto_pending) == 1 and not self._auto_busy:
+            core.callLater(0, self._run_auto_replace)
+
+    def _keys_in_flight(self):
+        """Character keys let through the hook that haven't arrived as
+        typed characters yet. Some never arrive (an NVDA command, a dead
+        key), so after a long pause the counts start over."""
+        with self._key_lock:
+            in_flight = self._keys_sent - self._keys_arrived
+            if in_flight < 0 or time.monotonic() - self._last_key_time > _IN_FLIGHT_FORGET:
+                self._keys_sent = self._keys_arrived = 0
+                return 0
+            return in_flight
+
+    def _run_auto_replace(self):
+        if self._terminated or self._auto_busy or not self._auto_pending:
+            return
+        quiet_for = time.monotonic() - self._last_key_time
+        if quiet_for < _IDLE_BEFORE_REPLACE:
+            core.callLater(int((_IDLE_BEFORE_REPLACE - quiet_for) * 1000) + 10, self._run_auto_replace)
+            return
+        if _modifier_down():
+            # Typed text would arrive with Shift, Ctrl or Alt applied.
+            core.callLater(50, self._run_auto_replace)
+            return
+        if self._keys_in_flight() > 0:
+            # Checked before holding anything, so waiting costs no lag.
+            _trace("keys on their way: sent %d, arrived %d", self._keys_sent, self._keys_arrived)
+            core.callLater(50, self._run_auto_replace)
+            return
+        self._auto_busy = True
+        serial = self._hold_keys()
+        if self._keys_in_flight() > 0:
+            # A key got through just before the hold.
+            self._end_auto(retry=True)
+            return
+        items = list(self._auto_pending)
+        self._auto_pending.clear()
+        try:
+            self._auto_swap(serial, items)
+        except Exception:
+            logger.debug("Typix: automatic replacement failed", exc_info=True)
+            _trace("auto swap failed", exc_info=True)
+            self._end_auto()
+
+    def _auto_swap(self, serial, items):
+        """Selects from the first waiting word to the caret and types that
+        stretch again with every waiting replacement in it, in one go. The
+        caret ends where it was without being moved. Replacing only the
+        word and moving the caret back lost the rest of the line on
+        claude.ai in Firefox."""
+        obj = api.getFocusObject()
+        caret = obj.makeTextInfo(textInfos.POSITION_CARET)
+        found = []
+        for item_obj, word, replacement, prefix in items:
+            if not _same_window(obj, item_obj):
+                _trace("skip %r: focus has moved", word)
+                continue
+            place = self._find_word(obj, word, prefix)
+            if place is None or place.text != word:
+                _trace("skip %r: not found after %r", word, prefix)
+                continue
+            span = place.copy()
+            span.setEndPoint(caret, "endToEnd")
+            stretch = span.text or ""
+            if any(c in stretch for c in _NOT_TYPED):
+                # A line break since: the text may have been sent.
+                _trace("skip %r: a line break follows it", word)
+                continue
+            if not stretch.startswith(word) or len(stretch) > _CARET_LIMIT:
+                _trace("skip %r: the text up to the caret reads %r", word, stretch[:80])
+                continue
+            if any(len(stretch) == len(f[3]) for f in found):
+                continue
+            found.append((span, word, replacement, stretch))
+        if not found:
+            self._end_auto()
+            return
+        # The first word has the longest stretch; every other word sits in
+        # it at a known distance from its end. Last first, so the earlier
+        # positions stay valid.
+        found.sort(key=lambda f: -len(f[3]))
+        span, _word, _replacement, original = found[0]
+        new = original
+        for _span, word, replacement, stretch in reversed(found):
+            at = len(original) - len(stretch)
+            if new[at:at + len(word)] != word:
+                _trace("skip all: %r is not where it was", word)
+                self._end_auto()
+                return
+            new = new[:at] + replacement + new[at + len(word):]
+        _trace("auto swap %r -> %r", original, new)
+        self._hold_selection_speech(obj)
+        try:
+            span.updateSelection()
+            self._await_selection(obj, original)
+            self._type(new)
+        except Exception:
+            _trace("auto swap failed", exc_info=True)
+            try:
+                # Left selected, the text would go with the next key.
+                caret.updateCaret()
+            except Exception:
+                pass
+            self._finish_swap(obj)
+            self._end_auto()
+            return
+
+        def landed(ok):
+            if serial != self._hold_serial:
+                return
+            _trace_field(obj, "after the swap")
+            self._alert("REPLACED", 660)
+            self._finish_swap(obj)
+            self._end_auto()
+        self._when_landed(obj, new, landed)
+
+    def _end_auto(self, retry=False, tries=20):
+        """Gives the held keys back, but only once nothing is selected: a
+        key landing on a selection would wipe it out. After about a second
+        they go anyway; they can't be held forever."""
+        try:
+            selection = api.getFocusObject().makeTextInfo(textInfos.POSITION_SELECTION)
+            selected = not selection.isCollapsed
+            if selected:
+                selection.collapse(end=True)
+                selection.updateCaret()
+        except Exception:
+            selected = False
+        if selected and tries:
+            _trace("a selection is still there, holding the keys a little longer")
+            core.callLater(50, self._end_auto, retry, tries - 1)
+            return
+        self._auto_busy = False
+        self._release_keys()
+        if self._auto_pending:
+            core.callLater(100 if retry else 0, self._run_auto_replace)
+
+    def _on_raw_key(self, vkCode=None, scanCode=None, extended=False, pressed=True, **kwargs):
+        """NVDA's raw key hook, on NVDA's input thread. Holds every key while
+        a swap is running. Must stay quick and must never raise."""
+        try:
+            if vkCode == _VK_PACKET:
+                return True
+            if vkCode in _ALT_KEYS:
+                self._alt_down = pressed
+            with self._key_lock:
+                if pressed:
+                    self._last_key_time = time.monotonic()
+                if self._holding:
+                    self._held_keys.append((vkCode, scanCode, extended, pressed))
+                    return False
+                if pressed and vkCode in _CHARACTER_KEYS and not self._alt_down:
+                    self._keys_sent += 1
+            return True
+        except Exception:
+            return True
+
+    def _hold_keys(self):
+        with self._key_lock:
+            self._holding = True
+            self._hold_serial += 1
+            serial = self._hold_serial
+        self._hold_deadline = time.monotonic() + _KEY_HOLD_TIMEOUT
+        core.callLater(int(_KEY_HOLD_TIMEOUT * 1000), self._hold_expired, serial)
+        return serial
+
+    def _hold_expired(self, serial):
+        """A swap that never finished must not keep the keys or stop later
+        replacements."""
+        if serial != self._hold_serial or not self._holding:
+            return
+        left = self._hold_deadline - time.monotonic()
+        if left > 0:
+            core.callLater(int(left * 1000) + 10, self._hold_expired, serial)
+            return
+        _trace("hold timed out")
+        self._hold_serial += 1  # the stuck swap stops at its next step
+        self._end_auto()
+
+    def _release_keys(self):
+        """Ends the hold and replays the held keys, in order."""
+        with self._key_lock:
+            keys = self._held_keys
+            self._held_keys = []
+            self._holding = False
+        if not keys:
+            return
+        _trace("replaying %d held key events", len(keys))
+        user32 = winBindings.user32
+        inputs = []
+        for vk, scan, extended, pressed in keys:
+            item = user32.INPUT()
+            item.type = user32.INPUT_TYPE.KEYBOARD
+            item.ii.ki = user32.KEYBDINPUT()
+            item.ii.ki.wVk = vk or 0
+            item.ii.ki.wScan = scan or 0
+            flags = 0
+            if extended:
+                flags |= user32.KEYEVENTF.EXTENDEDKEY
+            if not pressed:
+                flags |= user32.KEYEVENTF.KEYUP
+            item.ii.ki.dwFlags = flags
+            inputs.append(item)
+        try:
+            winUser.SendInput(inputs)
+        except Exception:
+            logger.exception("Typix: could not replay held keys")
 
     @staticmethod
     def _no_way_back():
@@ -603,7 +927,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             if obj.makeTextInfo(textInfos.POSITION_SELECTION).text == expected:
                 return
             if time.monotonic() - started >= _SELECT_TIMEOUT:
-                raise LookupError("selection read back differently")
+                raise LookupError("selection read back as %r, not %r" % (
+                    obj.makeTextInfo(textInfos.POSITION_SELECTION).text, expected
+                ))
             time.sleep(0.002)
 
     def _hold_selection_speech(self, obj):
@@ -863,21 +1189,23 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             logger.debug("Typix: gesture hook failed", exc_info=True)
         return True
 
-    def _finished_word(self, obj, buffered, rules=True):
+    def _finished_word(self, obj, buffered, rules=True, ending=" "):
         """The word that just ended, read from the field: (word, the
         whitespace chunk around it, its replacement or None, always None
-        without rules). Speaks the word if NVDA's own echo would have got
-        it wrong."""
+        without rules, the text before it on its line). ending is the
+        character that ended the word, for traces. Speaks the word if
+        NVDA's own echo would have got it wrong."""
         word = buffered
         token = ""
         replacement = None
+        prefix = None
         speak = self._echo_words(obj)
         try:
             # Terminals: NVDA delays echo there; leave the field alone.
             in_terminal = obj.role == controlTypes.Role.TERMINAL
         except Exception:
             in_terminal = True
-        rules_on = self._expansions or self._capitalize_i or self._capitalize_sentences
+        rules_on = bool(self._expansions)
         if not in_terminal and (speak or self._spellcheck_enabled or rules_on):
             lines = _lines_before_caret(obj)
             for place in lines:
@@ -890,40 +1218,31 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                         # The whole space-separated chunk, so links and
                         # code can be told apart from words.
                         token = _token_at(text, end - 1)
-                        # What comes before the word, for sentence starts.
-                        before = text[:text.rfind(found, 0, end + 1)]
-                        if not before.strip():
-                            above = next(lines, None)
-                            before = above.text if above is not None else ""
-                        # Text replacement rules: expansions first, then
-                        # a lone i, then the first word of a sentence.
-                        if not rules:
-                            pass
-                        elif word in self._expansions:
+                        # Where the word is on its line, so the swap finds
+                        # this occurrence and not another.
+                        prefix = text[:text.rfind(found, 0, end + 1)]
+                        if rules and word in self._expansions:
                             replacement = self._expansions[word]
-                        elif self._capitalize_i and word[0] == "i" and word.replace("’", "'") in _I_FORMS:
-                            replacement = "I" + word[1:]
-                        elif (
-                            self._capitalize_sentences and word[0].islower()
-                            and not addon_spellcheck.looks_like_code(token)
-                        ):
-                            ending = before.rstrip().rstrip("\"'“‘([{")
-                            last = ending.split()[-1] if ending.split() else ""
-                            # A dot inside the last chunk (e.g., i.e., a file
-                            # name) isn't the end of a sentence.
-                            if not ending or (
-                                ending[-1] in ".!?…" and not addon_spellcheck.looks_like_code(last)
-                            ):
-                                replacement = word[0].upper() + word[1:]
+                        _trace(
+                            "finished word=%r buffered=%r ended by %r, before=%r token=%r rules=%s -> %r in %s",
+                            word, buffered, ending, prefix[-60:], token, rules, replacement, _describe(obj),
+                        )
+                    else:
+                        _trace("field word %r doesn't end with buffered %r, left alone", found, buffered)
                     break
         if speak and len(word) <= 100 and (replacement or word != buffered):
             speech.clearTypedWordBuffer()
             speech.speakText(replacement or word)
-        return word, token, replacement
+        return word, token, replacement, prefix
 
     def event_typedCharacter(self, obj, nextHandler, ch):
         if self._is_own_char(ch):
             return
+        with self._key_lock:
+            self._keys_arrived += 1
+        if ch in _NOT_TYPED and self._auto_pending:
+            _trace("%r dropped %d waiting replacements", ch, len(self._auto_pending))
+            self._auto_pending.clear()
         # A word just ended, by NVDA's own test, and NVDA buffered it. Read
         # the whole word from the field before nextHandler(), which speaks
         # and clears the buffer. NVDA also clears it on every caret move,
@@ -932,7 +1251,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         # word is trusted only when it ends with the buffer, so
         # autocorrect, a moved caret or an unreadable field fall back to
         # NVDA's own behaviour. Enter ends a word too.
-        buffered = word = replacement = None
+        buffered = word = replacement = prefix = None
         token = ""
         try:
             protected = api.isTypingProtected()
@@ -962,7 +1281,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             try:
                 # Enter may have sent the text already, and replacing mutes
                 # speech just as a game or chat answers, so its words stay.
-                word, token, replacement = self._finished_word(obj, buffered, rules=ch not in _NOT_TYPED)
+                word, token, replacement, prefix = self._finished_word(
+                    obj, buffered, rules=ch not in _NOT_TYPED, ending=ch
+                )
             except Exception:
                 # A field can die while it's read. NVDA must still get the
                 # character, so this falls back to NVDA's own word.
@@ -977,9 +1298,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         if replacement:
             # After nextHandler, so the character that ended the word has
             # reached the field first.
-            core.callLater(0, self._replace, obj, word, replacement, 0, True)
+            self._queue_auto_replace(obj, word, replacement, prefix)
         # Spelling works whether or not typing sounds are on. An expanded
-        # shortcut isn't checked; a capitalised word still is.
+        # shortcut isn't checked.
         if (
             word and word not in self._expansions and self._spellcheck_enabled and self._category_on("MISSPELLED")
             and not addon_spellcheck.looks_like_code(token)
@@ -987,8 +1308,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             lang = _input_language(obj)
             if addon_spellcheck.check_word(word, lang) is False:
                 self._stats.misspelling()
-                # With a capital added, the field is about to hold the new form.
-                self._last_misspelling = SimpleNamespace(word=replacement or word, lang=lang)
+                self._last_misspelling = SimpleNamespace(word=word, lang=lang)
                 self._alert("MISSPELLED", 880)
 
         if not _is_editable(obj):

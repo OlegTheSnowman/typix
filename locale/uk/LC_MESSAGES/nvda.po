@@ -769,8 +769,7 @@ msgstr "Змінити правило..."
 msgid "Remove rule"
 msgstr "Видалити правило"
 
-#. Translators: Group in Typix settings for text replacements and automatic
-#. capitals.
+#. Translators: Group in Typix settings for text replacements.
 #: globalPlugins/typix/settings.py:725
 msgid "Text replacements"
 msgstr "Заміни тексту"
@@ -795,18 +794,6 @@ msgstr "Змінити заміну..."
 #: globalPlugins/typix/settings.py:735
 msgid "Remove replacement"
 msgstr "Видалити заміну"
-
-#. Translators: Checkbox that capitalises the first word of each sentence as
-#. you type.
-#: globalPlugins/typix/settings.py:739
-msgid "Capitali&ze the first word of a sentence"
-msgstr "Починати речення з великої &літери"
-
-#. Translators: Checkbox that turns a lone lowercase i, and i'm, i'll and so
-#. on, into a capital I.
-#: globalPlugins/typix/settings.py:744
-msgid "Capital I when i stands a&lone"
-msgstr "Велика англійська I, коли i стоїть о&кремо"
 
 #. Translators: Group in Typix settings for spelling options.
 #: globalPlugins/typix/settings.py:751
