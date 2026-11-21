@@ -67,7 +67,7 @@ msgstr "Словник ще недоступний, спробуйте трох�
 #. dialog.
 #: globalPlugins/typix/__init__.py:464
 msgid "Checks the spelling of selected text; with nothing selected, fixes the last misspelled word you typed, or reports your typing statistics when there is none"
-msgstr "Перевіряє правопис виділеного тексту; якщо нічого не виділено, виправляє останнє слово з помилкою, а якщо такого немає, повідомляє статистику набору"
+msgstr "Перевіряє правопис виділеного тексту; якщо нічого не виділено, виправляє останнє слово з помилкою, а якщо такого немає, відкриває статистику набору"
 
 #. Translators: Spoken when the selection spelling check finds no misspelled
 #. words.
